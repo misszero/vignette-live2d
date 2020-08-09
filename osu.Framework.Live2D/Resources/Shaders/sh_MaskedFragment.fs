@@ -7,10 +7,10 @@ uniform vec4 u_baseColor;
 
 void main() {
     vec4 col_forMask = texture2D(s_texture0, v_texCoord) * u_baseColor;
-    col_forMask.rgb = col_forMask.rgb * col.forMask.a;
+    col_forMask.rgb = col_forMask.rgb * col_forMask.a;
     
-    vec4 clipMask = (1.0 - texture2D(s_texture1, v_clipPos.xy, / v_clipPos.w)) * u_channelFlag;
-    float maskVal = clipMask.r + clipMask.g + clibMask.b + clipMask.a;
+    vec4 clipMask = (1.0 - texture2D(s_texture1, v_clipPos.xy / v_clipPos.w)) * u_channelFlag;
+    float maskVal = clipMask.r + clipMask.g + clipMask.b + clipMask.a;
 
     col_forMask = col_forMask * maskVal;
     gl_FragColor = col_forMask;

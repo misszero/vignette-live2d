@@ -1,11 +1,15 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="ppy.osu.Framework" Version="2020.730.1" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CubismFrameworkCS\CubismFramework\CubismFramework.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\Shaders\*" />
   </ItemGroup>
 </Project>
