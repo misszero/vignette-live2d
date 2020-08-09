@@ -1,6 +1,4 @@
 {
-    // See https://go.microsoft.com/fwlink/?LinkId=733558
-    // for the documentation about the tasks.json format
     "version": "2.0.0",
     "tasks": [
         {
@@ -9,16 +7,26 @@
             "type": "shell",
             "args": [
                 "build",
-                // Ask dotnet build to generate full paths for file names.
                 "/property:GenerateFullPaths=true",
-                // Do not generate summary otherwise it leads to duplicate errors in Problems panel
                 "/consoleloggerparameters:NoSummary"
             ],
             "group": "build",
             "presentation": {
                 "reveal": "silent"
             },
-            "problemMatcher": "$msCompile"
+            "problemMatcher": "$msCompile",
+            "dependsOn": [ "prebuild" ]
+        },
+        {
+            "label": "prebuild",
+            "command": "copy",
+            "type": "shell",
+            "args": [
+                "-Path",
+                "'${workspaceFolder}/CubismFrameworkCS/dll/windows/x86_64/*.dll'",
+                "-Destination",
+                "'${workspaceFolder}/osu.Framework.Live2D.Tests/bin/Debug/netcoreapp3.1/'"
+            ]
         }
     ]
 }
