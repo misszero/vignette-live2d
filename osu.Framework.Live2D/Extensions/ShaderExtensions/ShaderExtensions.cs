@@ -1,7 +1,8 @@
 using System;
+using osu.Framework.Graphics.Shaders;
 using osuTK.Graphics.ES20;
 
-namespace osu.Framework.Graphics.Shaders
+namespace osu.Framework.Extensions.ShaderExtensions
 {
     internal static class ShaderExtensions
     {

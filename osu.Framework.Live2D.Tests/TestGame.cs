@@ -9,13 +9,13 @@ namespace osu.Framework.Live2D.Tests
         public CubismAssetStore CubismAssets { get; private set; }
 
         private DependencyContainer dependencies;
-
         protected override IReadOnlyDependencyContainer CreateChildDependencies(IReadOnlyDependencyContainer parent) =>
             dependencies = new DependencyContainer(base.CreateChildDependencies(parent));
 
         [BackgroundDependencyLoader]
         private void load()
         {
+            // Make sure to add resources included in the library as it contains necessary shaders to run Live2D assets.
             Resources.AddStore(new NamespacedResourceStore<byte[]>(new DllResourceStore(CubismResources.ResourceAssembly), "Resources"));
             Resources.AddStore(new NamespacedResourceStore<byte[]>(new DllResourceStore(typeof(TestGame).Assembly), "Resources"));
 

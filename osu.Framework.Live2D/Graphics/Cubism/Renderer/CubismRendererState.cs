@@ -1,6 +1,6 @@
 using osuTK.Graphics.ES20;
 
-namespace osu.Framework.Graphics.Cubism
+namespace osu.Framework.Graphics.Cubism.Renderer
 {
     internal class CubismRendererState
     {

@@ -1,15 +1,14 @@
 using osu.Framework.Graphics.Shaders;
 
-namespace osu.Framework.Graphics.Cubism
+namespace osu.Framework.Graphics.Cubism.Renderer
 {
-    public class CubismShaderManager
+    internal class CubismShaderManager
     {
         private IShader maskDrawingShader;
         private IShader unmaskedMeshDrawShader;
         private IShader maskedMeshDrawShader;
         private IShader unmaskedPremultAlphaMeshDrawShader;
         private IShader maskedPremultAlphaMeshDrawShader;
-        private bool disposed = false;
 
         public CubismShaderManager(ShaderManager shaderManager)
         {

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using CubismFramework;
+using osu.Framework.Extensions.ShaderExtensions;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shaders;
@@ -9,9 +10,9 @@ using osu.Framework.Graphics.Textures;
 using osuTK;
 using osuTK.Graphics.ES30;
 
-namespace osu.Framework.Graphics.Cubism
+namespace osu.Framework.Graphics.Cubism.Renderer
 {
-    public unsafe class CubismRenderer : ICubismRenderer, IDisposable
+    internal unsafe class CubismRenderer : ICubismRenderer, IDisposable
     {
         private const int clipping_mask_size = 256;
         private Matrix4 projectionMatrix;

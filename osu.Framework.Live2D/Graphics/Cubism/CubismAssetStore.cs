@@ -10,6 +10,7 @@ namespace osu.Framework.Graphics.Cubism
     public class CubismAssetStore : IResourceStore<CubismAsset>
     {
         private IResourceStore<byte[]> store { get; }
+        private Dictionary<string, CubismAsset> assetCache = new Dictionary<string, CubismAsset>();
 
         public CubismAssetStore(IResourceStore<byte[]> store)
         {
@@ -18,31 +19,36 @@ namespace osu.Framework.Graphics.Cubism
 
         public CubismAsset Get(string name)
         {
-            try
+            if (string.IsNullOrEmpty(name)) return null;
+
+            lock (assetCache)
             {
-                var baseDir = name.Split(".")[0];
-                var asset = new CubismAsset(name, (string path) =>
+                if (!assetCache.TryGetValue(name, out var asset))
                 {
-                    path = path.Replace("/", ".");
-                    if (!path.Contains($"{baseDir}."))
-                        return GetStream($"{baseDir}.{path}");
-                    else
-                        return GetStream(path);
-                });
+                    try
+                    {
+                        var baseDir = name.Split(".")[0];
+                        assetCache[name] = asset = new CubismAsset(name, (string path) =>
+                        {
+                            path = path.Replace("/", ".");
+                            if (!path.Contains($"{baseDir}."))
+                                return GetStream($"{baseDir}.{path}");
+                            else
+                                return GetStream(path);
+                        });
+
+                        return asset;
+                    }
+                    catch
+                    {
+                    }
+                }
 
                 return asset;
             }
-            catch
-            {
-            }
-
-            return null;
         }
 
-        public Task<CubismAsset> GetAsync(string name)
-        {
-            throw new System.NotImplementedException();
-        }
+        public Task<CubismAsset> GetAsync(string name) => Task.Run(() => Get(name));
 
         public IEnumerable<string> GetAvailableResources() => store.GetAvailableResources();
 

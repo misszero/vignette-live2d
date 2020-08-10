@@ -2,7 +2,7 @@ using CubismFramework;
 using osu.Framework.Graphics.Textures;
 using osuTK.Graphics.ES30;
 
-namespace osu.Framework.Graphics.Cubism
+namespace osu.Framework.Graphics.Cubism.Renderer
 {
     internal class CubismTexture : Texture, ICubismTexture
     {
