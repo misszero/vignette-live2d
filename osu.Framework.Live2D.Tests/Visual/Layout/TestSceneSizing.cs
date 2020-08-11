@@ -34,14 +34,33 @@ namespace osu.Framework.Live2D.Tests.Visual.Layout
                         Origin = Anchor.Centre,
                         Anchor = Anchor.Centre,
                         Asset = cubismAssets.Get("hiyori.hiyori_free_t06.model3.json"),
+                        CanBreathe = false,
+                        CanEyeBlink = false
                     }
                 }
             });
 
             AddSliderStep<float>("width", 128, 684, 512, (float w) => container.Width = w);
             AddSliderStep<float>("height", 128, 684, 512, (float h) => container.Height = h);
+
             AddSliderStep<float>("model scale", 0.5f, 2, 1, (float s) =>
-                sprite.ModelTransform = new CubismModelTransform { Scale = new Vector2(s) });
+                sprite.ModelTransform = new CubismModelTransform { Scale = new Vector2(s), Position = sprite.ModelTransform.Position });
+
+            AddSliderStep<float>("model x position", -128, 128, 0, (float x) =>
+                sprite.ModelTransform = new CubismModelTransform 
+                { 
+                    Scale = sprite.ModelTransform.Scale,
+                    Position = new Vector2(x, sprite.ModelTransform.Position.Y)
+                }
+            );
+
+            AddSliderStep<float>("model y position", -128, 128, 0, (float y) =>
+                sprite.ModelTransform = new CubismModelTransform 
+                { 
+                    Scale = sprite.ModelTransform.Scale,
+                    Position = new Vector2(sprite.ModelTransform.Position.X, y)
+                }
+            );
         }
     }
 }

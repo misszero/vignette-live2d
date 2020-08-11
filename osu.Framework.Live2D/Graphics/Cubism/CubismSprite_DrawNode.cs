@@ -8,14 +8,9 @@ namespace osu.Framework.Graphics.Cubism
 {
     internal class CubismSpriteDrawNode : DrawNode
     {
-        private CubismRenderer renderer;
-        private CubismRenderingManager renderingManager;
-
         public CubismSpriteDrawNode(CubismSprite source)
             : base(source)
         {
-            renderer = source.Renderer;
-            renderingManager = source.RenderingManager;
         }
 
         public override void Draw(Action<TexturedVertex2D> vertexAction)
@@ -26,12 +21,13 @@ namespace osu.Framework.Graphics.Cubism
             var transform = source.ModelTransform;
 
             Matrix4 projection = Matrix4.Identity;
+            Matrix4 translate = Matrix4.CreateTranslation(new Vector3(transform.Position.X, -transform.Position.Y, 0) / 100);
             Matrix4 zoom = Matrix4.CreateScale(
                 transform.Scale.X * source.DrawHeight / source.DrawWidth, 
                 transform.Scale.Y, 0.0f);
             
-            projection *= zoom;
-            renderingManager.Draw(projection);
+            projection *= zoom * translate;
+            source.RenderingManager.Draw(projection);
         }
     }
 }
