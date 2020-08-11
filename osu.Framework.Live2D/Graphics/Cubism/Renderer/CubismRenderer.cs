@@ -171,7 +171,7 @@ namespace osu.Framework.Graphics.Cubism.Renderer
         {
             var texture = (CubismTexture)itexture;
             var mask = clippingMask as CubismClippingMask;
-            bool useClippingMask = (clippingMask != null);
+            bool useClippingMask = (mask != null);
 
             UseCulling = useCulling;
             BlendMode = blendMode;
