@@ -31,8 +31,6 @@ namespace osu.Framework.Live2D.Tests.Visual.Layout
                     sprite = new CubismSprite
                     {
                         RelativeSizeAxes = Axes.Both,
-                        Origin = Anchor.Centre,
-                        Anchor = Anchor.Centre,
                         Asset = cubismAssets.Get("hiyori.hiyori_free_t06.model3.json"),
                         CanBreathe = false,
                         CanEyeBlink = false
@@ -40,27 +38,16 @@ namespace osu.Framework.Live2D.Tests.Visual.Layout
                 }
             });
 
+            AddLabel("container");
+
             AddSliderStep<float>("width", 128, 684, 512, (float w) => container.Width = w);
             AddSliderStep<float>("height", 128, 684, 512, (float h) => container.Height = h);
 
-            AddSliderStep<float>("model scale", 0.5f, 2, 1, (float s) =>
-                sprite.ModelTransform = new CubismModelTransform { Scale = new Vector2(s), Position = sprite.ModelTransform.Position });
+            AddLabel("model");
 
-            AddSliderStep<float>("model x position", -128, 128, 0, (float x) =>
-                sprite.ModelTransform = new CubismModelTransform 
-                { 
-                    Scale = sprite.ModelTransform.Scale,
-                    Position = new Vector2(x, sprite.ModelTransform.Position.Y)
-                }
-            );
-
-            AddSliderStep<float>("model y position", -128, 128, 0, (float y) =>
-                sprite.ModelTransform = new CubismModelTransform 
-                { 
-                    Scale = sprite.ModelTransform.Scale,
-                    Position = new Vector2(sprite.ModelTransform.Position.X, y)
-                }
-            );
+            AddSliderStep<float>("scale", 0.5f, 2, 1, (float s) => sprite.ModelScale = s);
+            AddSliderStep<float>("x position", -128, 128, 0, (float x) => sprite.ModelOffsetX = x);
+            AddSliderStep<float>("y position", -128, 128, 0, (float y) => sprite.ModelOffsetY = y);
         }
     }
 }
