@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using CubismFramework;
 using osu.Framework.Extensions.ShaderExtensions;
@@ -12,13 +11,11 @@ using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Cubism.Renderer
 {
-    internal unsafe class CubismRenderer : ICubismRenderer, IDisposable
+    internal unsafe class CubismRenderer : ICubismRenderer
     {
         private const int clipping_mask_size = 256;
         private Matrix4 projectionMatrix;
         private Colour4 modelColor = new Colour4(1.0f, 1.0f, 1.0f, 1.0f);
-        private List<CubismTexture> textures = new List<CubismTexture>();
-        private List<CubismClippingMask> masks = new List<CubismClippingMask>();
         private CubismRendererState rendererState = new CubismRendererState();
         private CubismShaderManager shaderManager;
 
@@ -76,23 +73,16 @@ namespace osu.Framework.Graphics.Cubism.Renderer
             {
                 useCulling = value;
 
-                if (useCulling)
-                    GL.Enable(EnableCap.CullFace);
-                else
-                    GL.Disable(EnableCap.CullFace);
+                // if (useCulling)
+                //     GL.Enable(EnableCap.CullFace);
+                // else
+                //     GL.Disable(EnableCap.CullFace);
             }
         }
-
-        private bool isDisposed = false;
 
         public CubismRenderer(CubismShaderManager shaderManager)
         {
             this.shaderManager = shaderManager;
-        }
-
-        ~CubismRenderer()
-        {
-            Dispose(false);
         }
 
         public bool UsePremultipliedAlpha { get; set; } = false;
@@ -102,7 +92,6 @@ namespace osu.Framework.Graphics.Cubism.Renderer
             var mask = new CubismClippingMask();
             mask.Size = new Vector2(clipping_mask_size);
 
-            masks.Add(mask);
             return mask;
         }
 
@@ -112,28 +101,12 @@ namespace osu.Framework.Graphics.Cubism.Renderer
             var texture = new CubismTexture(upload.Width, upload.Height);
             texture.SetData(upload);
 
-            textures.Add(texture);
             return texture;
         }
 
-        public void Dispose()
-        {
-            Dispose(true);
-        }
+        public void DisposeClippingMask(ICubismClippingMask clippingMask) => (clippingMask as CubismClippingMask)?.Dispose();
 
-        public void DisposeClippingMask(ICubismClippingMask clippingMask)
-        {
-            var mask = (CubismClippingMask)clippingMask;
-            mask.Dispose();
-            masks.Remove(mask);
-        }
-
-        public void DisposeTexture(ICubismTexture itexture)
-        {
-            var texture = (CubismTexture)itexture;
-            texture.Dispose();
-            textures.Remove(texture);
-        }
+        public void DisposeTexture(ICubismTexture texture) => (texture as CubismTexture)?.Dispose();
 
         public void DrawMask(ICubismTexture itexture, float[] vertexBuffer, float[] uvBuffer, short[] indexBuffer, ICubismClippingMask clippingMask, Matrix4 clippingMatrix, bool useCulling)
         {
@@ -146,20 +119,24 @@ namespace osu.Framework.Graphics.Cubism.Renderer
 
             if (texture.Bind())
             {
-                GL.Uniform1(shader.GetUniformLocation("s_texture0"), 0);
+                shader.GetUniform<int>("s_texture0").Value = 0;
 
+                // Set other parameters
+                shader.GetUniform<Vector4>("u_channelFlag").Value = new Vector4(1.0f, 0.0f, 0.0f, 0.0f);
+                shader.GetUniform<Matrix4>("u_clipMatrix").Value = clippingMatrix;
+                shader.GetUniform<Vector4>("u_baseColor").Value = new Vector4(-1.0f, -1.0f, 1.0f, 1.0f);
+
+                // Set the vertex buffer
                 GL.EnableVertexAttribArray(shader.GetAttributeLocation("a_position"));
                 fixed (float* pinnedVertexBuffer = vertexBuffer)
                     GL.VertexAttribPointer(shader.GetAttributeLocation("a_position"), 2, VertexAttribPointerType.Float, false, sizeof(float) * 2, (IntPtr)pinnedVertexBuffer);
                 
+                // Set the UV buffer
                 GL.EnableVertexAttribArray(shader.GetAttributeLocation("a_texCoord"));
                 fixed (float* pinnedUVBuffer = uvBuffer)
                     GL.VertexAttribPointer(shader.GetAttributeLocation("a_texCoord"), 2, VertexAttribPointerType.Float, false, sizeof(float) * 2, (IntPtr)pinnedUVBuffer);
-                
-                GL.Uniform4(shader.GetUniformLocation("u_channelFlag"), 1.0f, 0.0f, 0.0f, 0.0f);
-                GL.UniformMatrix4(shader.GetUniformLocation("u_clipMatrix"), false, ref clippingMatrix);
-                GL.Uniform4(shader.GetUniformLocation("u_baseColor"), -1.0f, -1.0f, 1.0f, 1.0f);
 
+                // Draw
                 fixed (short* pinnedIndexBuffer = indexBuffer)
                     GL.DrawElements(PrimitiveType.Triangles, indexBuffer.Length, DrawElementsType.UnsignedShort, (IntPtr)pinnedIndexBuffer);
             }
@@ -171,7 +148,7 @@ namespace osu.Framework.Graphics.Cubism.Renderer
         {
             var texture = (CubismTexture)itexture;
             var mask = clippingMask as CubismClippingMask;
-            bool useClippingMask = (clippingMask != null);
+            bool useClippingMask = (mask != null);
 
             UseCulling = useCulling;
             BlendMode = blendMode;
@@ -179,42 +156,39 @@ namespace osu.Framework.Graphics.Cubism.Renderer
             var shader = (Shader)shaderManager.GetDrawMeshShader(useClippingMask, UsePremultipliedAlpha);
             shader.Bind();
 
-            GL.EnableVertexAttribArray(shader.GetAttributeLocation("a_position"));
-            fixed (float* pinnedVertexBuffer = vertexBuffer)
-                GL.VertexAttribPointer(shader.GetAttributeLocation("a_position"), 2, VertexAttribPointerType.Float, false, sizeof(float) * 2, (IntPtr)pinnedVertexBuffer);
-
-            GL.EnableVertexAttribArray(shader.GetAttributeLocation("a_texCoord"));
-            fixed (float* pinnedUVBuffer = uvBuffer)
-                GL.VertexAttribPointer(shader.GetAttributeLocation("a_texCoord"), 2, VertexAttribPointerType.Float, false, sizeof(float) * 2, (IntPtr)pinnedUVBuffer);
-
             if (useClippingMask == true)
             {
                 if (mask.Texture.Bind(TextureUnit.Texture1))
                 {
-                    GL.Uniform1(shader.GetUniformLocation("s_texture1"), 1);
-                    GL.UniformMatrix4(shader.GetUniformLocation("u_clipMatrix"), false, ref clippingMatrix);
-                    GL.Uniform4(shader.GetUniformLocation("u_channelFlag"), 1.0f, 0.0f, 0.0f, 0.0f);
+                    shader.GetUniform<int>("s_texture1").Value = 1;
+                    shader.GetUniform<Matrix4>("u_clipMatrix").Value = clippingMatrix;
+                    shader.GetUniform<Vector4>("u_channelFlag").Value = new Vector4(1.0f, 0.0f, 0.0f, 0.0f);
                 }
             }
             else
-                GLWrapper.BindTexture(0, TextureUnit.Texture1);
+                GLWrapper.BindTexture(null, TextureUnit.Texture1);
 
             if (texture.Bind())
             {
-                GL.Uniform1(shader.GetUniformLocation("s_texture0"), 0);
-                GL.UniformMatrix4(shader.GetUniformLocation("u_matrix"), false, ref projectionMatrix);
+                shader.GetUniform<int>("s_texture0").Value = 0;
+                shader.GetUniform<Matrix4>("u_matrix").Value = projectionMatrix;
 
-                float[] color = new float[] { modelColor.R, modelColor.G, modelColor.B, modelColor.A };
-                color[3] *= (float)opacity;
+                Vector4 color = new Vector4(modelColor.R, modelColor.G, modelColor.B, modelColor.A);
+                color.W *= (float)opacity;
 
                 if (UsePremultipliedAlpha)
-                {
-                    color[0] *= color[3];
-                    color[1] *= color[3];
-                    color[2] *= color[3];
-                }
+                    color.Xyz *= color.W;
 
-                GL.Uniform4(shader.GetUniformLocation("u_baseColor"), color[0], color[1], color[2], color[3]);
+                shader.GetUniform<Vector4>("u_baseColor").Value = color;
+
+                GL.EnableVertexAttribArray(shader.GetAttributeLocation("a_position"));
+                fixed (float* pinnedVertexBuffer = vertexBuffer)
+                    GL.VertexAttribPointer(shader.GetAttributeLocation("a_position"), 2, VertexAttribPointerType.Float, false, sizeof(float) * 2, (IntPtr)pinnedVertexBuffer);
+
+                GL.EnableVertexAttribArray(shader.GetAttributeLocation("a_texCoord"));
+                fixed (float* pinnedUVBuffer = uvBuffer)
+                    GL.VertexAttribPointer(shader.GetAttributeLocation("a_texCoord"), 2, VertexAttribPointerType.Float, false, sizeof(float) * 2, (IntPtr)pinnedUVBuffer);
+
                 fixed (short* pinnedIndexBuffer = indexBuffer)
                     GL.DrawElements(PrimitiveType.Triangles, indexBuffer.Length, DrawElementsType.UnsignedShort, (IntPtr)pinnedIndexBuffer);
             }
@@ -238,14 +212,9 @@ namespace osu.Framework.Graphics.Cubism.Renderer
         {
             var mask = (CubismClippingMask)clippingMask;
             mask.Bind();
-
             GLWrapper.PushViewport(new RectangleI(0, 0, mask.Texture.Width, mask.Texture.Height));
-            GLWrapper.Clear(new ClearInfo());
-
+            GLWrapper.Clear(new ClearInfo(Colour4.White));
             mask.Unbind();
-
-            var shader = shaderManager.GetDrawMaskShader();
-            shader.Bind();
 
             GLWrapper.SetBlend(new BlendingParameters
             {
@@ -254,8 +223,6 @@ namespace osu.Framework.Graphics.Cubism.Renderer
                 SourceAlpha = BlendingType.Zero,
                 DestinationAlpha = BlendingType.OneMinusSrcAlpha
             });
-
-            shader.Unbind();
         }
 
         public void StartDrawingModel(float[] color, Matrix4 mvpMatrix)
@@ -273,14 +240,6 @@ namespace osu.Framework.Graphics.Cubism.Renderer
                 modelColor = new Colour4(color[0], color[1], color[2], color[3]);
 
             projectionMatrix = mvpMatrix;
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (isDisposed)
-                return;
-
-            isDisposed = true;
         }
     }
 }

@@ -1,6 +1,4 @@
 using System;
-using CubismFramework;
-using osu.Framework.Graphics.Cubism.Renderer;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osuTK;
 
@@ -8,14 +6,9 @@ namespace osu.Framework.Graphics.Cubism
 {
     internal class CubismSpriteDrawNode : DrawNode
     {
-        private CubismRenderer renderer;
-        private CubismRenderingManager renderingManager;
-
         public CubismSpriteDrawNode(CubismSprite source)
             : base(source)
         {
-            renderer = source.Renderer;
-            renderingManager = source.RenderingManager;
         }
 
         public override void Draw(Action<TexturedVertex2D> vertexAction)
@@ -23,15 +16,24 @@ namespace osu.Framework.Graphics.Cubism
             base.Draw(vertexAction);
 
             var source = (CubismSprite)Source;
-            var transform = source.ModelTransform;
 
             Matrix4 projection = Matrix4.Identity;
-            Matrix4 zoom = Matrix4.CreateScale(
-                transform.Scale.X * source.DrawHeight / source.DrawWidth, 
-                transform.Scale.Y, 0.0f);
+            Matrix4 translate = Matrix4.CreateTranslation(new Vector3(source.ModelOffsetX, -source.ModelOffsetY, 0) / 100);
+            Matrix4 zoom = Matrix4.CreateScale(source.ModelScale * source.DrawHeight / source.DrawWidth, source.ModelScale, 0.0f);
             
-            projection *= zoom;
-            renderingManager.Draw(projection);
+            projection *= zoom * translate;
+            source.RenderingManager.Draw(projection);
+        }
+
+        protected override void Dispose(bool isDisposing)
+        {
+            var source = (CubismSprite)Source;
+
+            // We are handling disposal here to ensure that it gets disposed after all draw calls have been performed
+            source.RenderingManager.Dispose();
+            source.Asset.Dispose();
+
+            base.Dispose(isDisposing);
         }
     }
 }
