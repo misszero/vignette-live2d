@@ -16,6 +16,12 @@ namespace osu.Framework.Graphics.Cubism
             this.store = store;
         }
 
+        /// <summary>
+        /// Loads a model used for <see cref="CubismSprite"/>.
+        /// This always returns a new instance of a model.
+        /// </summary>
+        /// <param name="name">The path to the model json file.</param>
+        /// <returns>The loaded CubismAsset</returns>
         public CubismAsset Get(string name)
         {
             if (string.IsNullOrEmpty(name)) return null;
@@ -25,11 +31,12 @@ namespace osu.Framework.Graphics.Cubism
                 var baseDir = name.Split(".")[0];
                 var asset = new CubismAsset(name, (string path) =>
                 {
+                    // CubismFileLoader internally appends the base directory to the provided path
+                    // This won't fare well with nested folders but it should work for now.
                     path = path.Replace("/", ".");
-                    if (!path.Contains($"{baseDir}."))
-                        return GetStream($"{baseDir}.{path}");
-                    else
-                        return GetStream(path);
+                    return (!path.Contains($"{baseDir}."))
+                        ? GetStream($"{baseDir}.{path}")
+                        : GetStream(path);
                 });
 
                 return asset;
