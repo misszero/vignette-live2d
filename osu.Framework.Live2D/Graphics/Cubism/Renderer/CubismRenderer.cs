@@ -156,14 +156,6 @@ namespace osu.Framework.Graphics.Cubism.Renderer
             var shader = (Shader)shaderManager.GetDrawMeshShader(useClippingMask, UsePremultipliedAlpha);
             shader.Bind();
 
-            GL.EnableVertexAttribArray(shader.GetAttributeLocation("a_position"));
-            fixed (float* pinnedVertexBuffer = vertexBuffer)
-                GL.VertexAttribPointer(shader.GetAttributeLocation("a_position"), 2, VertexAttribPointerType.Float, false, sizeof(float) * 2, (IntPtr)pinnedVertexBuffer);
-
-            GL.EnableVertexAttribArray(shader.GetAttributeLocation("a_texCoord"));
-            fixed (float* pinnedUVBuffer = uvBuffer)
-                GL.VertexAttribPointer(shader.GetAttributeLocation("a_texCoord"), 2, VertexAttribPointerType.Float, false, sizeof(float) * 2, (IntPtr)pinnedUVBuffer);
-
             if (useClippingMask == true)
             {
                 if (mask.Texture.Bind(TextureUnit.Texture1))
@@ -189,6 +181,14 @@ namespace osu.Framework.Graphics.Cubism.Renderer
 
                 shader.GetUniform<Vector4>("u_baseColor").Value = color;
 
+                GL.EnableVertexAttribArray(shader.GetAttributeLocation("a_position"));
+                fixed (float* pinnedVertexBuffer = vertexBuffer)
+                    GL.VertexAttribPointer(shader.GetAttributeLocation("a_position"), 2, VertexAttribPointerType.Float, false, sizeof(float) * 2, (IntPtr)pinnedVertexBuffer);
+
+                GL.EnableVertexAttribArray(shader.GetAttributeLocation("a_texCoord"));
+                fixed (float* pinnedUVBuffer = uvBuffer)
+                    GL.VertexAttribPointer(shader.GetAttributeLocation("a_texCoord"), 2, VertexAttribPointerType.Float, false, sizeof(float) * 2, (IntPtr)pinnedUVBuffer);
+
                 fixed (short* pinnedIndexBuffer = indexBuffer)
                     GL.DrawElements(PrimitiveType.Triangles, indexBuffer.Length, DrawElementsType.UnsignedShort, (IntPtr)pinnedIndexBuffer);
             }
@@ -212,9 +212,9 @@ namespace osu.Framework.Graphics.Cubism.Renderer
         {
             var mask = (CubismClippingMask)clippingMask;
             mask.Bind();
-
             GLWrapper.PushViewport(new RectangleI(0, 0, mask.Texture.Width, mask.Texture.Height));
             GLWrapper.Clear(new ClearInfo(Colour4.White));
+            mask.Unbind();
 
             GLWrapper.SetBlend(new BlendingParameters
             {
@@ -223,8 +223,6 @@ namespace osu.Framework.Graphics.Cubism.Renderer
                 SourceAlpha = BlendingType.Zero,
                 DestinationAlpha = BlendingType.OneMinusSrcAlpha
             });
-
-            mask.Unbind();
         }
 
         public void StartDrawingModel(float[] color, Matrix4 mvpMatrix)
