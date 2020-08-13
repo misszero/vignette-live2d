@@ -1,13 +1,11 @@
 using System;
 using CubismFramework;
 using osu.Framework.Allocation;
-using osu.Framework.Bindables;
 using osu.Framework.Graphics.Cubism.Renderer;
 using osu.Framework.Graphics.Shaders;
-using osu.Framework.Input.Events;
 using osuTK;
 using osuTK.Graphics;
-using osuTK.Input;
+using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Cubism
 {
@@ -230,7 +228,7 @@ namespace osu.Framework.Graphics.Cubism
         public Vector2 FrameBufferScale => Vector2.One;
         public IShader TextureShader { get; private set; }
         public IShader RoundedTextureShader { get; private set; }
-        protected override DrawNode CreateDrawNode() =>
-            new BufferedDrawNode(this, new CubismSpriteDrawNode(this), new BufferedDrawNodeSharedData());
+        private readonly BufferedDrawNodeSharedData sharedData = new BufferedDrawNodeSharedData(new[] { RenderbufferInternalFormat.DepthComponent16 });
+        protected override DrawNode CreateDrawNode() => new BufferedDrawNode(this, new CubismSpriteDrawNode(this), sharedData);
     }
 }
