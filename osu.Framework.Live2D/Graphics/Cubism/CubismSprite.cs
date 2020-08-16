@@ -5,6 +5,7 @@ using osu.Framework.Graphics.Cubism.Renderer;
 using osu.Framework.Graphics.Shaders;
 using osuTK;
 using osuTK.Graphics;
+using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Cubism
 {
