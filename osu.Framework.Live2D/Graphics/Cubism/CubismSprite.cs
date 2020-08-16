@@ -1,6 +1,7 @@
 using System;
 using CubismFramework;
 using osu.Framework.Allocation;
+using osu.Framework.Audio.Sample;
 using osu.Framework.Graphics.Cubism.Renderer;
 using osu.Framework.Graphics.Shaders;
 using osuTK;
@@ -9,10 +10,9 @@ using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Cubism
 {
-    public class CubismSprite : Drawable, IBufferedDrawable
+    public partial class CubismSprite : Drawable, IBufferedDrawable
     {
-        internal CubismRenderer Renderer;
-        internal CubismShaderManager ShaderManager;
+        public CubismRenderer Renderer = new CubismRenderer();
         public CubismRenderingManager RenderingManager { get; private set; }
 
         private CubismAsset asset;
@@ -32,93 +32,28 @@ namespace osu.Framework.Graphics.Cubism
             }
         }
 
-        private Vector2 position
+        public bool IsMoving
         {
-            get => new Vector2(x, y);
-            set
+            get
             {
-                x = value.X;
-                y = value.Y;
+                if (Voice?.Playing ?? false)
+                    return true;
+
+                if (CanBreathe || CanEyeBlink)
+                    return true;
+
+                if ((baseMotionQueue?.IsActive ?? false) || (expressionQueue?.IsActive ?? false) || (effectQueue?.IsActive ?? false))
+                    return true;
+
+                return false;
             }
         }
 
-        public Vector2 ModelPosition
-        {
-            get => position;
-            set
-            {
-                if (position == value) return;
+        public int BaseMotionsQueued => baseMotionQueue?.Queued ?? 0;
+        public int ExpressionsQueued => expressionQueue?.Queued ?? 0;
+        public int EffectsQueued => effectQueue?.Queued ?? 0;
 
-                position = value;
-                Invalidate(Invalidation.DrawNode);
-            }
-        }
-
-        private float x;
-        public float ModelPositionX
-        {
-            get => x;
-            set
-            {
-                if (x == value) return;
-
-                x = value;
-                Invalidate(Invalidation.DrawNode);
-            }
-        }
-
-        private float y;
-        public float ModelPositionY
-        {
-            get => y;
-            set
-            {
-                if (y == value) return;
-
-                y = value;
-                Invalidate(Invalidation.DrawNode);
-            }
-        }
-
-        private Vector2 scale = Vector2.One;
-        public Vector2 ModelScale
-        {
-            get => scale;
-            set
-            {
-                if (scale == value) return;
-
-                scale = value;
-                Invalidate(Invalidation.DrawNode);
-            }
-        }
-
-        private Colour4 colour;
-        public Colour4 ModelColour
-        {
-            get => colour;
-            set
-            {
-                if (colour == value) return;
-
-                colour = value;
-                Invalidate(Invalidation.DrawNode);
-            }
-        }
-
-        private bool usePremultipliedAlpha;
-        public bool UsePremultipliedAlpha
-        {
-            get => usePremultipliedAlpha;
-            set
-            {
-                if (usePremultipliedAlpha == value) return;
-
-                usePremultipliedAlpha = value;
-                Invalidate(Invalidation.DrawNode);
-            }
-        }
-
+        public SampleChannel Voice;
         private CubismMotionQueueEntry eyeBlinkMotion;
         private CubismMotionQueueEntry breatheMotion;
         private CubismMotionQueue baseMotionQueue;
@@ -154,7 +89,7 @@ namespace osu.Framework.Graphics.Cubism
         [BackgroundDependencyLoader]
         private void load(ShaderManager shaderManager)
         {
-            this.ShaderManager = new CubismShaderManager(shaderManager);
+            Renderer.ShaderManager = new CubismShaderManager(shaderManager);
 
             TextureShader = shaderManager.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
             RoundedTextureShader = shaderManager.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
@@ -198,6 +133,32 @@ namespace osu.Framework.Graphics.Cubism
         /// </summary>
         public void StopMotion(double fadeOutTime = 0, CubismAsset.MotionType type = CubismAsset.MotionType.Base) => getMotionQueue(type).Stop(fadeOutTime);
 
+        /// <summary>
+        /// Modify a model's parameter.
+        /// </summary>
+        public void SetParameter(string name, double value)
+        {
+            Asset.Model.RestoreSavedParameters();
+            Asset.Model.GetParameter(name).Value = value;
+            Asset.Model.SaveParameters();
+
+            // Only invalidate when we're not moving to avoid the calls getting doubled
+            if (!IsMoving)
+                Invalidate(Invalidation.DrawNode);
+        }
+
+        /// <summary>
+        /// Resets all model parameters to its defaults.
+        /// </summary>
+        public void ResetParameters()
+        {
+            Asset.Model.RestoreDefaultParameters();
+            Asset.Model.SaveParameters();
+
+            if (!IsMoving)
+                Invalidate(Invalidation.DrawNode);
+        }
+
         private void initialize()
         {
             var eyeBlinkController = new CubismEyeBlink(Asset.ParameterGroups["EyeBlink"]);
@@ -217,7 +178,6 @@ namespace osu.Framework.Graphics.Cubism
             expressionQueue = new CubismMotionQueue(Asset, CubismAsset.MotionType.Expression);
             effectQueue = new CubismMotionQueue(Asset, CubismAsset.MotionType.Effect);
 
-            Renderer = new CubismRenderer(ShaderManager);
             RenderingManager = new CubismRenderingManager(Renderer, Asset);
         }
 
@@ -240,14 +200,17 @@ namespace osu.Framework.Graphics.Cubism
         {
             base.Update();
 
+            SetParameter("ParamMouthOpenY", Voice?.CurrentAmplitudes.Average ?? 0);
+
+            Renderer.DrawSize = DrawSize;
             Asset.Update(Clock.ElapsedFrameTime / 1000);
 
             baseMotionQueue.Update();
             expressionQueue.Update();
             effectQueue.Update();
 
-            // We don't need to invalidate if the model is just a still
-            if (CanBreathe || CanEyeBlink || baseMotionQueue.IsActive || expressionQueue.IsActive || effectQueue.IsActive)
+            // We just need to invalidate the draw node when we do want to animate
+            if (IsMoving)
                 Invalidate(Invalidation.DrawNode);
         }
 

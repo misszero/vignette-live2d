@@ -2,7 +2,7 @@ using osu.Framework.Graphics.Shaders;
 
 namespace osu.Framework.Graphics.Cubism.Renderer
 {
-    internal class CubismShaderManager
+    public class CubismShaderManager
     {
         private IShader maskDrawingShader;
         private IShader unmaskedMeshDrawShader;

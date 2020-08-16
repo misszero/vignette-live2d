@@ -7,6 +7,7 @@ namespace osu.Framework.Graphics.Cubism
     {
         public CubismMotionQueueEntry Current { get; private set; }
         public bool IsActive => Current?.Playing ?? false;
+        public int Queued => queue.Count;
         private readonly CubismAsset asset;
         private readonly CubismAsset.MotionType type;
         private List<(ICubismMotion, bool)> queue = new List<(ICubismMotion, bool)>();
@@ -17,7 +18,10 @@ namespace osu.Framework.Graphics.Cubism
             this.type = type;
         }
 
-        public void Add(ICubismMotion motion, bool loop = false) => queue.Add((motion, loop));
+        public void Add(ICubismMotion motion, bool loop = false)
+        {
+            lock (queue) queue.Add((motion, loop));
+        }
 
         public void Next(double fadeOutTime = 0)
         {
@@ -29,8 +33,11 @@ namespace osu.Framework.Graphics.Cubism
 
         public void Stop(double fadeOutTime = 0)
         {
-            queue.Clear();
-            Next(fadeOutTime);
+            lock (queue) queue.Clear();
+            Current?.Terminate(fadeOutTime);
+
+            asset.Model.RestoreDefaultParameters();
+            asset.Model.SaveParameters();
         }
 
         public void Update()
@@ -40,7 +47,7 @@ namespace osu.Framework.Graphics.Cubism
                 var (motion, loop) = queue[0];
                 Current = asset.StartMotion(type, motion, loop);
 
-                queue.RemoveAll(entry => entry.Item1 == motion);
+                lock (queue)  queue.RemoveAll(entry => entry.Item1 == motion);
             }
         }
     }

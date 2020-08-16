@@ -4,13 +4,16 @@ using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Cubism.Renderer
 {
-    internal class CubismTexture : Texture, ICubismTexture
+    public partial class CubismRenderer
     {
-        public CubismTexture(int width, int height)
-            : base(width, height, false, All.Linear)
+        private class CubismTexture : Texture, ICubismTexture
         {
-        }
+            public CubismTexture(int width, int height)
+                : base(width, height, false, All.Linear)
+            {
+            }
 
-        public bool Bind(TextureUnit unit = TextureUnit.Texture0) => TextureGL.Bind(unit);
+            public bool Bind(TextureUnit unit = TextureUnit.Texture0) => TextureGL.Bind(unit);
+        }
     }
 }
