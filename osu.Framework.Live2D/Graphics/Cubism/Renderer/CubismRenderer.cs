@@ -13,7 +13,7 @@ namespace osu.Framework.Graphics.Cubism.Renderer
 {
     internal unsafe class CubismRenderer : ICubismRenderer
     {
-        private const int clipping_mask_size = 256;
+        private const int mask_size = 256;
         private Matrix4 projectionMatrix;
         private Colour4 modelColor = new Colour4(1.0f, 1.0f, 1.0f, 1.0f);
         private CubismRendererState rendererState = new CubismRendererState();
@@ -90,7 +90,7 @@ namespace osu.Framework.Graphics.Cubism.Renderer
         public ICubismClippingMask CreateClippingMask()
         {
             var mask = new CubismClippingMask();
-            mask.Size = new Vector2(clipping_mask_size);
+            mask.Size = new Vector2(mask_size);
 
             return mask;
         }
@@ -117,29 +117,28 @@ namespace osu.Framework.Graphics.Cubism.Renderer
             var shader = (Shader)shaderManager.GetDrawMaskShader();
             shader.Bind();
 
-            if (texture.Bind())
-            {
-                shader.GetUniform<int>("s_texture0").Value = 0;
+            texture.Bind();
 
-                // Set other parameters
-                shader.GetUniform<Vector4>("u_channelFlag").Value = new Vector4(1.0f, 0.0f, 0.0f, 0.0f);
-                shader.GetUniform<Matrix4>("u_clipMatrix").Value = clippingMatrix;
-                shader.GetUniform<Vector4>("u_baseColor").Value = new Vector4(-1.0f, -1.0f, 1.0f, 1.0f);
+            shader.GetUniform<int>("s_texture0").Value = 0;
 
-                // Set the vertex buffer
-                GL.EnableVertexAttribArray(shader.GetAttributeLocation("a_position"));
-                fixed (float* pinnedVertexBuffer = vertexBuffer)
-                    GL.VertexAttribPointer(shader.GetAttributeLocation("a_position"), 2, VertexAttribPointerType.Float, false, sizeof(float) * 2, (IntPtr)pinnedVertexBuffer);
-                
-                // Set the UV buffer
-                GL.EnableVertexAttribArray(shader.GetAttributeLocation("a_texCoord"));
-                fixed (float* pinnedUVBuffer = uvBuffer)
-                    GL.VertexAttribPointer(shader.GetAttributeLocation("a_texCoord"), 2, VertexAttribPointerType.Float, false, sizeof(float) * 2, (IntPtr)pinnedUVBuffer);
+            // Set other parameters
+            shader.GetUniform<Vector4>("u_channelFlag").Value = new Vector4(1.0f, 0.0f, 0.0f, 0.0f);
+            shader.GetUniform<Matrix4>("u_clipMatrix").Value = clippingMatrix;
+            shader.GetUniform<Vector4>("u_baseColor").Value = new Vector4(-1.0f, -1.0f, 1.0f, 1.0f);
 
-                // Draw
-                fixed (short* pinnedIndexBuffer = indexBuffer)
-                    GL.DrawElements(PrimitiveType.Triangles, indexBuffer.Length, DrawElementsType.UnsignedShort, (IntPtr)pinnedIndexBuffer);
-            }
+            // Set the vertex buffer
+            GL.EnableVertexAttribArray(shader.GetAttributeLocation("a_position"));
+            fixed (float* pinnedVertexBuffer = vertexBuffer)
+                GL.VertexAttribPointer(shader.GetAttributeLocation("a_position"), 2, VertexAttribPointerType.Float, false, sizeof(float) * 2, (IntPtr)pinnedVertexBuffer);
+            
+            // Set the UV buffer
+            GL.EnableVertexAttribArray(shader.GetAttributeLocation("a_texCoord"));
+            fixed (float* pinnedUVBuffer = uvBuffer)
+                GL.VertexAttribPointer(shader.GetAttributeLocation("a_texCoord"), 2, VertexAttribPointerType.Float, false, sizeof(float) * 2, (IntPtr)pinnedUVBuffer);
+
+            // Draw
+            fixed (short* pinnedIndexBuffer = indexBuffer)
+                GL.DrawElements(PrimitiveType.Triangles, indexBuffer.Length, DrawElementsType.UnsignedShort, (IntPtr)pinnedIndexBuffer);
 
             shader.Unbind();
         }
@@ -158,47 +157,48 @@ namespace osu.Framework.Graphics.Cubism.Renderer
 
             if (useClippingMask == true)
             {
-                if (mask.Texture.Bind(TextureUnit.Texture1))
-                {
-                    shader.GetUniform<int>("s_texture1").Value = 1;
-                    shader.GetUniform<Matrix4>("u_clipMatrix").Value = clippingMatrix;
-                    shader.GetUniform<Vector4>("u_channelFlag").Value = new Vector4(1.0f, 0.0f, 0.0f, 0.0f);
-                }
+                mask.Texture.Bind(TextureUnit.Texture1);
+
+                shader.GetUniform<int>("s_texture1").Value = 1;
+                shader.GetUniform<Matrix4>("u_clipMatrix").Value = clippingMatrix;
+                shader.GetUniform<Vector4>("u_channelFlag").Value = new Vector4(1.0f, 0.0f, 0.0f, 0.0f);
             }
             else
                 GLWrapper.BindTexture(null, TextureUnit.Texture1);
 
-            if (texture.Bind())
-            {
-                shader.GetUniform<int>("s_texture0").Value = 0;
-                shader.GetUniform<Matrix4>("u_matrix").Value = projectionMatrix;
+            texture.Bind();
 
-                Vector4 color = new Vector4(modelColor.R, modelColor.G, modelColor.B, modelColor.A);
-                color.W *= (float)opacity;
+            shader.GetUniform<int>("s_texture0").Value = 0;
+            shader.GetUniform<Matrix4>("u_matrix").Value = projectionMatrix;
 
-                if (UsePremultipliedAlpha)
-                    color.Xyz *= color.W;
+            Vector4 color = new Vector4(modelColor.R, modelColor.G, modelColor.B, modelColor.A);
+            color.W *= (float)opacity;
 
-                shader.GetUniform<Vector4>("u_baseColor").Value = color;
+            if (UsePremultipliedAlpha)
+                color.Xyz *= color.W;
 
-                GL.EnableVertexAttribArray(shader.GetAttributeLocation("a_position"));
-                fixed (float* pinnedVertexBuffer = vertexBuffer)
-                    GL.VertexAttribPointer(shader.GetAttributeLocation("a_position"), 2, VertexAttribPointerType.Float, false, sizeof(float) * 2, (IntPtr)pinnedVertexBuffer);
+            shader.GetUniform<Vector4>("u_baseColor").Value = color;
 
-                GL.EnableVertexAttribArray(shader.GetAttributeLocation("a_texCoord"));
-                fixed (float* pinnedUVBuffer = uvBuffer)
-                    GL.VertexAttribPointer(shader.GetAttributeLocation("a_texCoord"), 2, VertexAttribPointerType.Float, false, sizeof(float) * 2, (IntPtr)pinnedUVBuffer);
+            GL.EnableVertexAttribArray(shader.GetAttributeLocation("a_position"));
+            fixed (float* pinnedVertexBuffer = vertexBuffer)
+                GL.VertexAttribPointer(shader.GetAttributeLocation("a_position"), 2, VertexAttribPointerType.Float, false, sizeof(float) * 2, (IntPtr)pinnedVertexBuffer);
 
-                fixed (short* pinnedIndexBuffer = indexBuffer)
-                    GL.DrawElements(PrimitiveType.Triangles, indexBuffer.Length, DrawElementsType.UnsignedShort, (IntPtr)pinnedIndexBuffer);
-            }
+            GL.EnableVertexAttribArray(shader.GetAttributeLocation("a_texCoord"));
+            fixed (float* pinnedUVBuffer = uvBuffer)
+                GL.VertexAttribPointer(shader.GetAttributeLocation("a_texCoord"), 2, VertexAttribPointerType.Float, false, sizeof(float) * 2, (IntPtr)pinnedUVBuffer);
+
+            fixed (short* pinnedIndexBuffer = indexBuffer)
+                GL.DrawElements(PrimitiveType.Triangles, indexBuffer.Length, DrawElementsType.UnsignedShort, (IntPtr)pinnedIndexBuffer);
 
             shader.Unbind();
         }
 
-        public void EndDrawingMask(ICubismClippingMask clipping_mask)
+        public void EndDrawingMask(ICubismClippingMask clippingMask)
         {
             GLWrapper.PopViewport();
+
+            var mask = (CubismClippingMask)clippingMask;
+            mask.Unbind();
         }
 
         public void EndDrawingModel()
@@ -214,7 +214,6 @@ namespace osu.Framework.Graphics.Cubism.Renderer
             mask.Bind();
             GLWrapper.PushViewport(new RectangleI(0, 0, mask.Texture.Width, mask.Texture.Height));
             GLWrapper.Clear(new ClearInfo(Colour4.White));
-            mask.Unbind();
 
             GLWrapper.SetBlend(new BlendingParameters
             {

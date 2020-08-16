@@ -1,20 +1,15 @@
 using System;
 using CubismFramework;
 using osu.Framework.Allocation;
-using osu.Framework.Bindables;
 using osu.Framework.Graphics.Cubism.Renderer;
 using osu.Framework.Graphics.Shaders;
-using osu.Framework.Input.Events;
 using osuTK;
 using osuTK.Graphics;
-using osuTK.Input;
 
 namespace osu.Framework.Graphics.Cubism
 {
     public class CubismSprite : Drawable, IBufferedDrawable
     {
-        #region Rendering
-
         internal CubismRenderer Renderer;
         internal CubismShaderManager ShaderManager;
         public CubismRenderingManager RenderingManager { get; private set; }
@@ -36,79 +31,98 @@ namespace osu.Framework.Graphics.Cubism
             }
         }
 
+        private Vector2 position
+        {
+            get => new Vector2(x, y);
+            set
+            {
+                x = value.X;
+                y = value.Y;
+            }
+        }
+
+        public Vector2 ModelPosition
+        {
+            get => position;
+            set
+            {
+                if (position == value) return;
+
+                position = value;
+                Invalidate(Invalidation.DrawNode);
+            }
+        }
+
+        private float x;
+        public float ModelPositionX
+        {
+            get => x;
+            set
+            {
+                if (x == value) return;
+
+                x = value;
+                Invalidate(Invalidation.DrawNode);
+            }
+        }
+
+        private float y;
+        public float ModelPositionY
+        {
+            get => y;
+            set
+            {
+                if (y == value) return;
+
+                y = value;
+                Invalidate(Invalidation.DrawNode);
+            }
+        }
+
+        private Vector2 scale = Vector2.One;
+        public Vector2 ModelScale
+        {
+            get => scale;
+            set
+            {
+                if (scale == value) return;
+
+                scale = value;
+                Invalidate(Invalidation.DrawNode);
+            }
+        }
+
+        private Colour4 colour;
         public Colour4 ModelColour
         {
-            get => new Colour4(Asset.ModelColor[0], Asset.ModelColor[1], Asset.ModelColor[2], Asset.ModelColor[3]);
+            get => colour;
             set
             {
-                if (Asset.ModelColor[0] == value.R &&
-                    Asset.ModelColor[1] == value.G &&
-                    Asset.ModelColor[2] == value.B &&
-                    Asset.ModelColor[3] == value.A)
-                    return;
+                if (colour == value) return;
 
-                Asset.ModelColor = new float[] { value.R, value.G, value.B, value.A };
+                colour = value;
                 Invalidate(Invalidation.DrawNode);
             }
         }
 
-        private Vector2 modelOffset;
-        public Vector2 ModelOffset
+        private bool usePremultipliedAlpha;
+        public bool UsePremultipliedAlpha
         {
-            get => modelOffset;
+            get => usePremultipliedAlpha;
             set
             {
-                if (modelOffset == value) return;
+                if (usePremultipliedAlpha == value) return;
 
-                modelOffset = value;
+                usePremultipliedAlpha = value;
                 Invalidate(Invalidation.DrawNode);
             }
         }
-
-        public float ModelOffsetX
-        {
-            get => modelOffset.X;
-            set
-            {
-                if (modelOffset.X == value) return;
-
-                modelOffset.X = value;
-                Invalidate(Invalidation.DrawNode);
-            }
-        }
-
-        public float ModelOffsetY
-        {
-            get => modelOffset.Y;
-            set
-            {
-                if (modelOffset.Y == value) return;
-
-                modelOffset.Y = value;
-                Invalidate(Invalidation.DrawNode);
-            }
-        }
-
-        private float modelScale;
-        public float ModelScale
-        {
-            get => modelScale;
-            set
-            {
-                if (modelScale == value) return;
-
-                modelScale = value;
-                Invalidate(Invalidation.DrawNode);
-            }
-        }
-
-        #endregion
-
-        # region Motion
 
         private CubismMotionQueueEntry eyeBlinkMotion;
         private CubismMotionQueueEntry breatheMotion;
-        private CubismMotionQueueEntry lastQueuedMotion;
+        private CubismMotionQueue baseMotionQueue;
+        private CubismMotionQueue expressionQueue;
+        private CubismMotionQueue effectQueue;
 
         private bool canBreathe;
         public bool CanBreathe
@@ -116,6 +130,8 @@ namespace osu.Framework.Graphics.Cubism
             get => canBreathe;
             set
             {
+                if (canBreathe == value) return;
+
                 canBreathe = value;
                 breatheMotion?.Suspend(!canBreathe);
             }
@@ -127,12 +143,12 @@ namespace osu.Framework.Graphics.Cubism
             get => canEyeBlink;
             set
             {
+                if (canEyeBlink == value) return;
+
                 canEyeBlink = value;
                 eyeBlinkMotion?.Suspend(!canEyeBlink);
             }
         }
-
-        #endregion
 
         [BackgroundDependencyLoader]
         private void load(ShaderManager shaderManager)
@@ -149,51 +165,37 @@ namespace osu.Framework.Graphics.Cubism
         /// <summary>
         /// Starts a motion from a motion group as defined in the model file.
         /// </summary>
-        /// <param name="force">Force the last motion to end.</param>
-        public void StartMotion(string group, int index, CubismAsset.MotionType motionType = CubismAsset.MotionType.Base, bool force = false, bool loop = false)
+        /// <param name="force">Clears the queue and immediately plays the motion.</param>
+        /// <param name="fadeOutTime">If force is true, smoothly fade out.</param>
+        public bool StartMotion(string group, int index, CubismAsset.MotionType type = CubismAsset.MotionType.Base, bool force = false, bool loop = false, double fadeOutTime = 0)
         {
-            if ((lastQueuedMotion != null) && (!lastQueuedMotion.Terminated))
-                StopMotion();
+            if (!Asset.MotionGroups.ContainsKey(group)) return false;
 
-            if (Asset.MotionGroups.TryGetValue(group, out var motionGroup))
-            {
-                if (index > motionGroup.Length)
-                    throw new IndexOutOfRangeException();
+            var motionGroup = Asset.MotionGroups[group];
+            if (index < 0 || index > motionGroup.Length) return false;
 
-                lastQueuedMotion = Asset.StartMotion(motionType, motionGroup[index], false);
-            }
-            else
-                throw new ArgumentException($"Motion Group '{group}' was not found.");
+            var motionQueue = getMotionQueue(type);
+            if (force)
+                motionQueue.Stop(fadeOutTime);
+
+            motionQueue.Add(motionGroup[index], loop);
+            return true;
         }
 
         /// <summary>
-        /// Pauses or unpauses the last motion.
+        /// Ends the current motion and plays the next in queue. This will do nothing if there's no other motions in queue.
         /// </summary>
-        public void SuspendMotion(bool suspend = true)
-        {
-            if (lastQueuedMotion.Terminated) return;
-
-            if (suspend && lastQueuedMotion.Suspended) return;
-
-            lastQueuedMotion.Suspend(suspend);
-        }
+        public void NextMotion(double fadeOutTime = 0, CubismAsset.MotionType type = CubismAsset.MotionType.Base) => getMotionQueue(type).Next(fadeOutTime);
 
         /// <summary>
-        /// Ends the last motion.
+        /// Pauses or unpauses the current motion.
         /// </summary>
-        public void StopMotion(double fadeOutTime = 0)
-        {
-            if (lastQueuedMotion.Terminated) return;
+        public void SuspendMotion(bool suspend = true, CubismAsset.MotionType type = CubismAsset.MotionType.Base) => getMotionQueue(type).Suspend(suspend);
 
-            lastQueuedMotion.Terminate(fadeOutTime);
-        }
-
-        public void SetParameter(string key, double val)
-        {
-            // Checking within bounds is handled internally
-            Asset.Model.GetParameter(key).Value = val;
-            Invalidate(Invalidation.DrawNode);
-        }
+        /// <summary>
+        /// Ends the current motion and clears the queue.
+        /// </summary>
+        public void StopMotion(double fadeOutTime = 0, CubismAsset.MotionType type = CubismAsset.MotionType.Base) => getMotionQueue(type).Stop(fadeOutTime);
 
         private void initialize()
         {
@@ -210,8 +212,27 @@ namespace osu.Framework.Graphics.Cubism
             breatheMotion = Asset.StartMotion(CubismAsset.MotionType.Effect, breathController);
             breatheMotion.Suspend(!canBreathe);
 
+            baseMotionQueue = new CubismMotionQueue(Asset, CubismAsset.MotionType.Base);
+            expressionQueue = new CubismMotionQueue(Asset, CubismAsset.MotionType.Expression);
+            effectQueue = new CubismMotionQueue(Asset, CubismAsset.MotionType.Effect);
+
             Renderer = new CubismRenderer(ShaderManager);
             RenderingManager = new CubismRenderingManager(Renderer, Asset);
+        }
+
+        private CubismMotionQueue getMotionQueue(CubismAsset.MotionType type)
+        {
+            switch (type)
+            {
+                case CubismAsset.MotionType.Base:
+                    return baseMotionQueue;
+                case CubismAsset.MotionType.Expression:
+                    return expressionQueue;
+                case CubismAsset.MotionType.Effect:
+                    return effectQueue;
+                default:
+                    throw new ArgumentException();
+            }
         }
 
         protected override void Update()
@@ -220,8 +241,12 @@ namespace osu.Framework.Graphics.Cubism
 
             Asset.Update(Clock.ElapsedFrameTime / 1000);
 
+            baseMotionQueue.Update();
+            expressionQueue.Update();
+            effectQueue.Update();
+
             // We don't need to invalidate if the model is just a still
-            if (CanEyeBlink || CanBreathe || lastQueuedMotion != null)
+            if (CanBreathe || CanEyeBlink || baseMotionQueue.IsActive || expressionQueue.IsActive || effectQueue.IsActive)
                 Invalidate(Invalidation.DrawNode);
         }
 
