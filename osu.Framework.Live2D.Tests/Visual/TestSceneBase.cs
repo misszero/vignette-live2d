@@ -2,6 +2,7 @@ using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cubism;
+using osu.Framework.Graphics.Cubism.Renderer;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Testing;
 using osuTK;
@@ -33,8 +34,11 @@ namespace osu.Framework.Live2D.Tests.Visual
                     {
                         RelativeSizeAxes = Axes.Both,
                         Asset = cubismAssets.Get("hiyori.hiyori_free_t06.model3.json"),
-                        ModelScale = new Vector2(2),
-                        ModelPositionY = 384
+                        Renderer = new CubismRenderer
+                        {
+                            Scale = new Vector2(2),
+                            Y = 384
+                        }
                     }
                 }
             });

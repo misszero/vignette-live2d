@@ -2,38 +2,41 @@ using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Cubism.Renderer
 {
-    internal class CubismRendererState
+    public partial class CubismRenderer
     {
-        private int lastArrayBufferBind;
-        private int lastElementArrayBufferBind;
-        private bool lastCullFace;
-        private int lastFrontFace;
-
-        public void Save()
+        private class CubismRendererState
         {
-            GL.GetInteger(GetPName.ArrayBufferBinding, out lastArrayBufferBind);
-            GL.GetInteger(GetPName.ElementArrayBufferBinding, out lastElementArrayBufferBind);
-            GL.GetInteger(GetPName.FrontFace, out lastFrontFace);
+            private int lastArrayBufferBind;
+            private int lastElementArrayBufferBind;
+            private bool lastCullFace;
+            private int lastFrontFace;
 
-            lastCullFace = GL.IsEnabled(EnableCap.CullFace);
-        }
+            public void Save()
+            {
+                GL.GetInteger(GetPName.ArrayBufferBinding, out lastArrayBufferBind);
+                GL.GetInteger(GetPName.ElementArrayBufferBinding, out lastElementArrayBufferBind);
+                GL.GetInteger(GetPName.FrontFace, out lastFrontFace);
 
-        public void Restore()
-        {
-            GL.BindBuffer(BufferTarget.ArrayBuffer, (uint)lastArrayBufferBind);
-            GL.BindBuffer(BufferTarget.ElementArrayBuffer, (uint)lastElementArrayBufferBind);
+                lastCullFace = GL.IsEnabled(EnableCap.CullFace);
+            }
 
-            GL.FrontFace((FrontFaceDirection)lastFrontFace);
+            public void Restore()
+            {
+                GL.BindBuffer(BufferTarget.ArrayBuffer, (uint)lastArrayBufferBind);
+                GL.BindBuffer(BufferTarget.ElementArrayBuffer, (uint)lastElementArrayBufferBind);
 
-            SetEnabled(EnableCap.CullFace, lastCullFace);
-        }
+                GL.FrontFace((FrontFaceDirection)lastFrontFace);
 
-        private static void SetEnabled(EnableCap cap, bool enabled)
-        {
-            if (enabled)
-                GL.Enable(cap);
-            else
-                GL.Disable(cap);
+                SetEnabled(EnableCap.CullFace, lastCullFace);
+            }
+
+            private static void SetEnabled(EnableCap cap, bool enabled)
+            {
+                if (enabled)
+                    GL.Enable(cap);
+                else
+                    GL.Disable(cap);
+            }
         }
     }
 }

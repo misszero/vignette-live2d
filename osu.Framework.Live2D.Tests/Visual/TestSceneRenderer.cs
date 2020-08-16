@@ -6,6 +6,7 @@ using osuTK;
 
 namespace osu.Framework.Live2D.Tests.Visual
 {
+    [System.ComponentModel.Description("Rendering models in drawables")]
     public class TestSceneRenderer : TestSceneBase
     {
         protected override Colour4 BackgroundColour => Colour4.Red;
@@ -14,8 +15,8 @@ namespace osu.Framework.Live2D.Tests.Visual
         private void load(CubismAssetStore cubismAssets)
         {
             Container.Size = new Vector2(512);
-            Sprite.ModelPositionY = 0;
-            Sprite.Scale = Vector2.One;
+            Sprite.Renderer.Y = 0;
+            Sprite.Renderer.Scale = Vector2.One;
 
             AddLabel("container");
 
@@ -24,9 +25,9 @@ namespace osu.Framework.Live2D.Tests.Visual
 
             AddLabel("model");
 
-            AddSliderStep<float>("scale", 0.5f, 2, 1, (float s) => Sprite.ModelScale = new Vector2(s));
-            AddSliderStep<float>("x position", -128, 128, 0, (float x) => Sprite.ModelPositionX = x);
-            AddSliderStep<float>("y position", -128, 128, 0, (float y) => Sprite.ModelPositionY = y);
+            AddSliderStep<float>("scale", 0.5f, 2, 1, (float s) => Sprite.Renderer.Scale = new Vector2(s));
+            AddSliderStep<float>("x position", -128, 128, 0, (float x) => Sprite.Renderer.X = x);
+            AddSliderStep<float>("y position", -128, 128, 0, (float y) => Sprite.Renderer.Y = y);
         }
     }
 }

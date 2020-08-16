@@ -11,14 +11,27 @@ using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Cubism.Renderer
 {
-    internal unsafe class CubismRenderer : ICubismRenderer
+    public unsafe partial class CubismRenderer : ICubismRenderer
     {
         private const int mask_size = 256;
         private Matrix4 projectionMatrix;
-        private Colour4 modelColor = new Colour4(1.0f, 1.0f, 1.0f, 1.0f);
         private CubismRendererState rendererState = new CubismRendererState();
-        private CubismShaderManager shaderManager;
+        public CubismShaderManager ShaderManager;
         public bool UsePremultipliedAlpha { get; set; }
+
+        public float DrawWidth;
+        public float DrawHeight;
+        public Vector2 DrawSize
+        {
+            get => new Vector2(DrawWidth, DrawHeight);
+            set
+            {
+                if (value == DrawSize) return;
+
+                DrawWidth = value.X;
+                DrawHeight = value.Y;
+            }
+        }
 
         private BlendModeType blendMode;
         public BlendModeType BlendMode
@@ -81,11 +94,6 @@ namespace osu.Framework.Graphics.Cubism.Renderer
             }
         }
 
-        public CubismRenderer(CubismShaderManager shaderManager)
-        {
-            this.shaderManager = shaderManager;
-        }
-
         public ICubismClippingMask CreateClippingMask()
         {
             var mask = new CubismClippingMask();
@@ -113,7 +121,7 @@ namespace osu.Framework.Graphics.Cubism.Renderer
 
             UseCulling = useCulling;
 
-            var shader = (Shader)shaderManager.GetDrawMaskShader();
+            var shader = (Shader)ShaderManager.GetDrawMaskShader();
             shader.Bind();
 
             texture.Bind();
@@ -151,7 +159,7 @@ namespace osu.Framework.Graphics.Cubism.Renderer
             UseCulling = useCulling;
             BlendMode = blendMode;
 
-            var shader = (Shader)shaderManager.GetDrawMeshShader(useClippingMask, UsePremultipliedAlpha);
+            var shader = (Shader)ShaderManager.GetDrawMeshShader(useClippingMask, UsePremultipliedAlpha);
             shader.Bind();
 
             if (useClippingMask == true)
@@ -170,7 +178,7 @@ namespace osu.Framework.Graphics.Cubism.Renderer
             shader.GetUniform<int>("s_texture0").Value = 0;
             shader.GetUniform<Matrix4>("u_matrix").Value = projectionMatrix;
 
-            Vector4 color = new Vector4(modelColor.R, modelColor.G, modelColor.B, modelColor.A);
+            Vector4 color = new Vector4(Colour.R, Colour.G, Colour.B, Colour.A);
             color.W *= (float)opacity;
 
             if (UsePremultipliedAlpha)
@@ -225,6 +233,9 @@ namespace osu.Framework.Graphics.Cubism.Renderer
 
         public void StartDrawingModel(float[] color, Matrix4 mvpMatrix)
         {
+            if (ShaderManager == null)
+                throw new NullReferenceException();
+
             rendererState.Save();
 
             GL.FrontFace(FrontFaceDirection.Ccw);
@@ -234,10 +245,10 @@ namespace osu.Framework.Graphics.Cubism.Renderer
             GLWrapper.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
             GLWrapper.BindBuffer(BufferTarget.ArrayBuffer, 0);
 
-            if ((color != null) && (color.Length == 4))
-                modelColor = new Colour4(color[0], color[1], color[2], color[3]);
+            Matrix4 translation = Matrix4.CreateTranslation(new Vector3(X / DrawWidth, -Y / DrawHeight, 0));
+            Matrix4 zoom = Matrix4.CreateScale(Scale.X * (DrawHeight / DrawWidth), Scale.Y, 0);
 
-            projectionMatrix = mvpMatrix;
+            projectionMatrix = mvpMatrix * zoom * translation;
         }
     }
 }
