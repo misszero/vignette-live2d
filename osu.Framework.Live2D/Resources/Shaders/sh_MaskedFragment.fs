@@ -12,6 +12,6 @@ void main() {
     vec4 clipMask = (1.0 - texture2D(s_texture1, v_clipPos.xy / v_clipPos.w)) * u_channelFlag;
     float maskVal = clipMask.r + clipMask.g + clipMask.b + clipMask.a;
 
-    col_forMask = col_forMask * (maskVal + 1.0);
+    col_forMask = col_forMask * maskVal;
     gl_FragColor = col_forMask;
 }
