@@ -115,7 +115,7 @@ namespace osu.Framework.Graphics.Cubism.Renderer
 
         public void DisposeTexture(ICubismTexture texture) => (texture as CubismTexture)?.Dispose();
 
-        public void DrawMask(ICubismTexture itexture, float[] vertexBuffer, float[] uvBuffer, short[] indexBuffer, ICubismClippingMask clippingMask, Matrix4 clippingMatrix, bool useCulling)
+        public void DrawMask(ICubismTexture itexture, float[] vertexBuffer, float[] uvBuffer, short[] indexBuffer, ICubismClippingMask clippingMask, Matrix4 clippingMatrix, bool useCulling, bool isInvertedMask)
         {
             var texture = (CubismTexture)itexture;
 
@@ -150,7 +150,7 @@ namespace osu.Framework.Graphics.Cubism.Renderer
             shader.Unbind();
         }
 
-        public void DrawMesh(ICubismTexture itexture, float[] vertexBuffer, float[] uvBuffer, short[] indexBuffer, ICubismClippingMask clippingMask, Matrix4 clippingMatrix, BlendModeType blendMode, bool useCulling, double opacity)
+        public void DrawMesh(ICubismTexture itexture, float[] vertexBuffer, float[] uvBuffer, short[] indexBuffer, ICubismClippingMask clippingMask, Matrix4 clippingMatrix, BlendModeType blendMode, bool useCulling, bool isInvertedMask, double opacity)
         {
             var texture = (CubismTexture)itexture;
             var mask = clippingMask as CubismClippingMask;

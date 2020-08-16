@@ -103,7 +103,7 @@ namespace osu.Framework.Graphics.Cubism
         /// </summary>
         /// <param name="force">Clears the queue and immediately plays the motion.</param>
         /// <param name="fadeOutTime">If force is true, smoothly fade out.</param>
-        public bool StartMotion(string group, int index, CubismAsset.MotionType type = CubismAsset.MotionType.Base, bool force = false, bool loop = false, double fadeOutTime = 0)
+        public bool StartMotion(string group, int index, MotionType type = MotionType.Base, bool force = false, bool loop = false, double fadeOutTime = 0)
         {
             if (!Asset.MotionGroups.ContainsKey(group)) return false;
 
@@ -121,17 +121,17 @@ namespace osu.Framework.Graphics.Cubism
         /// <summary>
         /// Ends the current motion and plays the next in queue. This will do nothing if there's no other motions in queue.
         /// </summary>
-        public void NextMotion(double fadeOutTime = 0, CubismAsset.MotionType type = CubismAsset.MotionType.Base) => getMotionQueue(type).Next(fadeOutTime);
+        public void NextMotion(double fadeOutTime = 0, MotionType type = MotionType.Base) => getMotionQueue(type).Next(fadeOutTime);
 
         /// <summary>
         /// Pauses or unpauses the current motion.
         /// </summary>
-        public void SuspendMotion(bool suspend = true, CubismAsset.MotionType type = CubismAsset.MotionType.Base) => getMotionQueue(type).Suspend(suspend);
+        public void SuspendMotion(bool suspend = true, MotionType type = MotionType.Base) => getMotionQueue(type).Suspend(suspend);
 
         /// <summary>
         /// Ends the current motion and clears the queue.
         /// </summary>
-        public void StopMotion(double fadeOutTime = 0, CubismAsset.MotionType type = CubismAsset.MotionType.Base) => getMotionQueue(type).Stop(fadeOutTime);
+        public void StopMotion(double fadeOutTime = 0, MotionType type = MotionType.Base) => getMotionQueue(type).Stop(fadeOutTime);
 
         /// <summary>
         /// Modify a model's parameter.
@@ -162,7 +162,7 @@ namespace osu.Framework.Graphics.Cubism
         private void initialize()
         {
             var eyeBlinkController = new CubismEyeBlink(Asset.ParameterGroups["EyeBlink"]);
-            eyeBlinkMotion = Asset.StartMotion(CubismAsset.MotionType.Effect, eyeBlinkController);
+            eyeBlinkMotion = Asset.StartMotion(MotionType.Effect, eyeBlinkController);
             eyeBlinkMotion.Suspend(!canEyeBlink);
 
             var breathController = new CubismBreath();
@@ -171,25 +171,25 @@ namespace osu.Framework.Graphics.Cubism
             breathController.SetParameter(new CubismBreathParameter(Asset.Model.GetParameter("ParamAngleZ"), 0.0, 10.0, 5.5345, 0.5));
             breathController.SetParameter(new CubismBreathParameter(Asset.Model.GetParameter("ParamBodyAngleX"), 0.0, 4.0, 15.5345, 0.5));
             breathController.SetParameter(new CubismBreathParameter(Asset.Model.GetParameter("ParamBreath"), 0.5, 0.5, 3.2345, 0.5));
-            breatheMotion = Asset.StartMotion(CubismAsset.MotionType.Effect, breathController);
+            breatheMotion = Asset.StartMotion(MotionType.Effect, breathController);
             breatheMotion.Suspend(!canBreathe);
 
-            baseMotionQueue = new CubismMotionQueue(Asset, CubismAsset.MotionType.Base);
-            expressionQueue = new CubismMotionQueue(Asset, CubismAsset.MotionType.Expression);
-            effectQueue = new CubismMotionQueue(Asset, CubismAsset.MotionType.Effect);
+            baseMotionQueue = new CubismMotionQueue(Asset, MotionType.Base);
+            expressionQueue = new CubismMotionQueue(Asset, MotionType.Expression);
+            effectQueue = new CubismMotionQueue(Asset, MotionType.Effect);
 
             RenderingManager = new CubismRenderingManager(Renderer, Asset);
         }
 
-        private CubismMotionQueue getMotionQueue(CubismAsset.MotionType type)
+        private CubismMotionQueue getMotionQueue(MotionType type)
         {
             switch (type)
             {
-                case CubismAsset.MotionType.Base:
+                case MotionType.Base:
                     return baseMotionQueue;
-                case CubismAsset.MotionType.Expression:
+                case MotionType.Expression:
                     return expressionQueue;
-                case CubismAsset.MotionType.Effect:
+                case MotionType.Effect:
                     return effectQueue;
                 default:
                     throw new ArgumentException();

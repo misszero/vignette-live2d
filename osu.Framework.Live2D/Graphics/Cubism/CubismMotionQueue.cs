@@ -9,10 +9,10 @@ namespace osu.Framework.Graphics.Cubism
         public bool IsActive => Current?.Playing ?? false;
         public int Queued => queue.Count;
         private readonly CubismAsset asset;
-        private readonly CubismAsset.MotionType type;
+        private readonly MotionType type;
         private List<(ICubismMotion, bool)> queue = new List<(ICubismMotion, bool)>();
 
-        public CubismMotionQueue(CubismAsset asset, CubismAsset.MotionType type)
+        public CubismMotionQueue(CubismAsset asset, MotionType type)
         {
             this.asset = asset;
             this.type = type;
