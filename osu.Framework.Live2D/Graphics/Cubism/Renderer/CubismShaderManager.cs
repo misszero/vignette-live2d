@@ -15,8 +15,8 @@ namespace osu.Framework.Graphics.Cubism.Renderer
             maskDrawingShader = shaderManager.Load("SetupMaskVertex", "SetupMaskFragment");
             unmaskedMeshDrawShader = shaderManager.Load("UnmaskedVertex", "UnmaskedFragment");
             maskedMeshDrawShader = shaderManager.Load("MaskedVertex", "MaskedFragment");
-            unmaskedPremultAlphaMeshDrawShader = shaderManager.Load("UnmaskedPremultipliedAlphaVertex", "UnmaskedPremultipliedAlphaFragment");
-            maskedPremultAlphaMeshDrawShader = shaderManager.Load("MaskedPremultipliedAlphaVertex", "MaskedPremultipliedAlphaFragment");
+            unmaskedPremultAlphaMeshDrawShader = shaderManager.Load("UnmaskedVertex", "UnmaskedPremultipliedAlphaFragment");
+            maskedPremultAlphaMeshDrawShader = shaderManager.Load("MaskedVertex", "MaskedPremultipliedAlphaFragment");
         }
 
         public IShader GetDrawMaskShader() => maskDrawingShader;

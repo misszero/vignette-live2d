@@ -7,6 +7,7 @@ uniform mat4 u_clipMatrix;
 
 void main() {
     gl_Position = u_matrix * a_position;
+
     v_clipPos = u_clipMatrix * a_position;
     v_texCoord = a_texCoord;
     v_texCoord.y = 1.0 - v_texCoord.y;
