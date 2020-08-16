@@ -1,4 +1,4 @@
-using osuTK.Graphics.ES20;
+using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Cubism.Renderer
 {

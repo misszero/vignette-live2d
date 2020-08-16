@@ -255,7 +255,7 @@ namespace osu.Framework.Graphics.Cubism
         public Vector2 FrameBufferScale => Vector2.One;
         public IShader TextureShader { get; private set; }
         public IShader RoundedTextureShader { get; private set; }
-        protected override DrawNode CreateDrawNode() =>
-            new BufferedDrawNode(this, new CubismSpriteDrawNode(this), new BufferedDrawNodeSharedData());
+        private readonly BufferedDrawNodeSharedData sharedData = new BufferedDrawNodeSharedData(new[] { RenderbufferInternalFormat.DepthComponent16 });
+        protected override DrawNode CreateDrawNode() => new BufferedDrawNode(this, new CubismSpriteDrawNode(this), sharedData);
     }
 }

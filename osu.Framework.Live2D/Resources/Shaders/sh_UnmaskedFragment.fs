@@ -1,3 +1,5 @@
+#include "sh_Utils.h"
+
 precision mediump float;
 
 varying vec2 v_texCoord;

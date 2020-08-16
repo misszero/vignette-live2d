@@ -18,6 +18,7 @@ namespace osu.Framework.Graphics.Cubism.Renderer
         private Colour4 modelColor = new Colour4(1.0f, 1.0f, 1.0f, 1.0f);
         private CubismRendererState rendererState = new CubismRendererState();
         private CubismShaderManager shaderManager;
+        public bool UsePremultipliedAlpha { get; set; }
 
         private BlendModeType blendMode;
         public BlendModeType BlendMode
@@ -73,10 +74,10 @@ namespace osu.Framework.Graphics.Cubism.Renderer
             {
                 useCulling = value;
 
-                // if (useCulling)
-                //     GL.Enable(EnableCap.CullFace);
-                // else
-                //     GL.Disable(EnableCap.CullFace);
+                if (useCulling)
+                    GL.Enable(EnableCap.CullFace);
+                else
+                    GL.Disable(EnableCap.CullFace);
             }
         }
 
@@ -84,8 +85,6 @@ namespace osu.Framework.Graphics.Cubism.Renderer
         {
             this.shaderManager = shaderManager;
         }
-
-        public bool UsePremultipliedAlpha { get; set; } = false;
 
         public ICubismClippingMask CreateClippingMask()
         {
