@@ -41,8 +41,9 @@ namespace osu.Framework.Graphics.Cubism
                             return (!path.Contains($"{baseDir}.")) ? GetStream($"{baseDir}.{path}") : GetStream(path);
                         });
                     }
-                    catch
+                    catch (Exception e)
                     {
+                        throw e;
                     }
                 }
 
