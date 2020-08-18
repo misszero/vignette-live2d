@@ -35,7 +35,7 @@ namespace osu.Framework.Graphics.Cubism
 
             protected override void Dispose(bool isDisposing)
             {
-                // We are handling disposal here to ensure that it gets disposed after all draw calls have been performed
+                // We are handling disposal here to ensure that all draw calls have been performed to avoid race conditions
                 renderingManager?.Dispose();
                 asset?.Dispose();
 

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using CubismFramework;
 using osu.Framework.IO.Stores;
@@ -33,12 +34,25 @@ namespace osu.Framework.Graphics.Cubism
                 {
                     try
                     {
-                        var baseDir = name.Split(".")[0];
-                        asset = new CubismAsset(name, (string path) =>
+                        var baseDir = name.Split('.', 2)[0];
+                        var mdlPath = name.Substring(baseDir.Length + 1, (name.Length - baseDir.Length) - 1);
+                        asset = new CubismAsset($"{baseDir}/{mdlPath}", (string path) =>
                         {
-                            // CubismFileLoader internally appends the base directory to the provided path
-                            path = path.Replace("/", ".");
-                            return (!path.Contains($"{baseDir}.")) ? GetStream($"{baseDir}.{path}") : GetStream(path);
+                            // CubismFileLoader internally uses System.IO.Path
+                            path = path.Replace(Path.DirectorySeparatorChar, '.');
+                            path = path.Replace(Path.AltDirectorySeparatorChar, '.');
+
+                            // osu!framework prepends an underscore to numbers as file names
+                            var matches = new Regex(@"\.(\d+)").Matches(path);
+                            foreach (Match match in matches)
+                            {
+                                GroupCollection groups = match.Groups;
+                                var start = groups[1].Index;
+                                var end = start + groups[1].Length;
+                                path = path.Substring(0, start) + $"_{groups[1].Value}" + path.Substring(end, path.Length - end);
+                            }
+
+                            return GetStream(path);
                         });
                     }
                     catch (Exception e)

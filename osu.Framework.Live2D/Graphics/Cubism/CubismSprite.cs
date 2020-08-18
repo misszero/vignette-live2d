@@ -1,12 +1,15 @@
 using System;
+using System.Linq;
 using CubismFramework;
 using osu.Framework.Allocation;
 using osu.Framework.Audio.Sample;
 using osu.Framework.Graphics.Cubism.Renderer;
 using osu.Framework.Graphics.Shaders;
+using osu.Framework.Input.Events;
 using osuTK;
 using osuTK.Graphics;
 using osuTK.Graphics.ES30;
+using osuTK.Input;
 
 namespace osu.Framework.Graphics.Cubism
 {
@@ -59,6 +62,9 @@ namespace osu.Framework.Graphics.Cubism
         private CubismMotionQueue baseMotionQueue;
         private CubismMotionQueue expressionQueue;
         private CubismMotionQueue effectQueue;
+        public static string[] PARAMS_EYE = new[] { "ParamEyeLOpen", "ParamEyeROpen" };
+        public static string[] PARAMS_LOOK = new[] { "ParamAngleX", "ParamAngleY", "ParamAngleZ", "ParamBodyAngleX" };
+        public static string[] PARAMS_BREATH = PARAMS_LOOK.Concat(new[] { "ParamBreath" }).ToArray();
 
         private bool canBreathe;
         public bool CanBreathe
@@ -69,7 +75,11 @@ namespace osu.Framework.Graphics.Cubism
                 if (canBreathe == value) return;
 
                 canBreathe = value;
-                breatheMotion?.Suspend(!canBreathe);
+                breatheMotion?.Terminate(0);
+                resetParameters(PARAMS_BREATH);
+
+                if (CanBreathe && IsLoaded)
+                    initializeBreathing();
             }
         }
 
@@ -82,9 +92,15 @@ namespace osu.Framework.Graphics.Cubism
                 if (canEyeBlink == value) return;
 
                 canEyeBlink = value;
-                eyeBlinkMotion?.Suspend(!canEyeBlink);
+                eyeBlinkMotion?.Terminate(0);
+                resetParameters(PARAMS_EYE);
+
+                if (CanEyeBlink && IsLoaded)
+                    initializeEyeBlink();
             }
         }
+
+        public CubismLookType LookType = CubismLookType.None;
 
         [BackgroundDependencyLoader]
         private void load(ShaderManager shaderManager)
@@ -108,11 +124,10 @@ namespace osu.Framework.Graphics.Cubism
             if (!Asset.MotionGroups.ContainsKey(group)) return false;
 
             var motionGroup = Asset.MotionGroups[group];
-            if (index < 0 || index > motionGroup.Length) return false;
+            if ((index < 0) || (index > motionGroup.Length - 1)) return false;
 
             var motionQueue = getMotionQueue(type);
-            if (force)
-                motionQueue.Stop(fadeOutTime);
+            if (force) motionQueue.Stop(fadeOutTime);
 
             motionQueue.Add(motionGroup[index], loop);
             return true;
@@ -136,16 +151,17 @@ namespace osu.Framework.Graphics.Cubism
         /// <summary>
         /// Modify a model's parameter.
         /// </summary>
-        public void SetParameter(string name, double value)
-        {
-            Asset.Model.RestoreSavedParameters();
-            Asset.Model.GetParameter(name).Value = value;
-            Asset.Model.SaveParameters();
+        public void SetParameterValue(string name, double value) => modifyParameterValue(name, (param) => param.Value = value );
 
-            // Only invalidate when we're not moving to avoid the calls getting doubled
-            if (!IsMoving)
-                Invalidate(Invalidation.DrawNode);
-        }
+        /// <summary>
+        /// Add value to a model's parameter.
+        /// </summary>
+        public void AddParameterValue(string name, double value) => modifyParameterValue(name, (param) => param.Value += value);
+
+        /// <summary>
+        /// Reduce value to a model's parameter.
+        /// </summary>
+        public void SubtractParameterValue(string name, double value) => modifyParameterValue(name, (param) => param.Value -= value);
 
         /// <summary>
         /// Resets all model parameters to its defaults.
@@ -161,10 +177,21 @@ namespace osu.Framework.Graphics.Cubism
 
         private void initialize()
         {
-            var eyeBlinkController = new CubismEyeBlink(Asset.ParameterGroups["EyeBlink"]);
-            eyeBlinkMotion = Asset.StartMotion(MotionType.Effect, eyeBlinkController);
-            eyeBlinkMotion.Suspend(!canEyeBlink);
+            if (CanBreathe)
+                initializeBreathing();
 
+            if (CanEyeBlink)
+                initializeEyeBlink();
+
+            baseMotionQueue = new CubismMotionQueue(Asset, MotionType.Base);
+            expressionQueue = new CubismMotionQueue(Asset, MotionType.Expression);
+            effectQueue = new CubismMotionQueue(Asset, MotionType.Effect);
+
+            RenderingManager = new CubismRenderingManager(Renderer, Asset);
+        }
+
+        private void initializeBreathing()
+        {
             var breathController = new CubismBreath();
             breathController.SetParameter(new CubismBreathParameter(Asset.Model.GetParameter("ParamAngleX"), 0.0, 15.0, 6.5345, 0.5));
             breathController.SetParameter(new CubismBreathParameter(Asset.Model.GetParameter("ParamAngleY"), 0.0, 8.0, 3.5345, 0.5));
@@ -172,13 +199,12 @@ namespace osu.Framework.Graphics.Cubism
             breathController.SetParameter(new CubismBreathParameter(Asset.Model.GetParameter("ParamBodyAngleX"), 0.0, 4.0, 15.5345, 0.5));
             breathController.SetParameter(new CubismBreathParameter(Asset.Model.GetParameter("ParamBreath"), 0.5, 0.5, 3.2345, 0.5));
             breatheMotion = Asset.StartMotion(MotionType.Effect, breathController);
-            breatheMotion.Suspend(!canBreathe);
+        }
 
-            baseMotionQueue = new CubismMotionQueue(Asset, MotionType.Base);
-            expressionQueue = new CubismMotionQueue(Asset, MotionType.Expression);
-            effectQueue = new CubismMotionQueue(Asset, MotionType.Effect);
-
-            RenderingManager = new CubismRenderingManager(Renderer, Asset);
+        private void initializeEyeBlink()
+        {
+            var eyeBlinkController = new CubismEyeBlink(Asset.ParameterGroups["EyeBlink"]);
+            eyeBlinkMotion = Asset.StartMotion(MotionType.Effect, eyeBlinkController);
         }
 
         private CubismMotionQueue getMotionQueue(MotionType type)
@@ -196,11 +222,50 @@ namespace osu.Framework.Graphics.Cubism
             }
         }
 
+        private void modifyParameterValue(string name, Action<CubismParameter> action)
+        {
+            var parameter = Asset.Model.GetParameter(name);
+            if (parameter == null) return;
+
+            Asset.Model.RestoreSavedParameters();
+            action?.Invoke(parameter);
+            Asset.Model.SaveParameters();
+
+            // Only invalidate when we're not moving to avoid the calls getting doubled
+            if (!IsMoving)
+                Invalidate(Invalidation.DrawNode);
+        }
+
+        private void lookAtPoint(Vector2 point)
+        {
+            double dragX = ((point.X - (DrawWidth / 2)) / DrawWidth) * 2;
+            double dragY = ((point.Y - (DrawHeight / 2)) / DrawHeight) * 2;
+            AddParameterValue("ParamAngleX", dragX * 30);
+            AddParameterValue("ParamAngleY", dragY * -30);
+            AddParameterValue("ParamAngleZ", dragX * dragY * -3);
+            AddParameterValue("ParamBodyAngleX", dragX * 10);
+
+            if (!IsMoving)
+                Invalidate(Invalidation.DrawNode);
+        }
+
+        private void resetParameters(string[] parameters)
+        {
+            Asset.Model.RestoreSavedParameters();
+            foreach (string name in parameters)
+            {
+                var param = Asset.Model.GetParameter(name);
+                if (param == null) continue;
+                param.Value = param.Default;
+            }
+            Asset.Model.SaveParameters();
+        }
+
         protected override void Update()
         {
             base.Update();
 
-            SetParameter("ParamMouthOpenY", Voice?.CurrentAmplitudes.Average ?? 0);
+            SetParameterValue("ParamMouthOpenY", Voice?.CurrentAmplitudes.Average ?? 0);
 
             Renderer.DrawSize = DrawSize;
             Asset.Update(Clock.ElapsedFrameTime / 1000);
@@ -214,6 +279,30 @@ namespace osu.Framework.Graphics.Cubism
                 Invalidate(Invalidation.DrawNode);
         }
 
+        protected override bool OnMouseMove(MouseMoveEvent e)
+        {
+            if ((LookType == CubismLookType.Drag && e.IsPressed(MouseButton.Left)) || (LookType == CubismLookType.Hover))
+                lookAtPoint(e.MousePosition);
+            return base.OnMouseMove(e);
+        }
+
+        protected override void OnHoverLost(HoverLostEvent e)
+        {
+            base.OnHoverLost(e);
+
+            if (LookType != CubismLookType.None)
+                resetParameters(PARAMS_LOOK);
+        }
+
+        protected override void OnMouseUp(MouseUpEvent e)
+        {
+            base.OnMouseUp(e);
+
+            if (LookType == CubismLookType.Drag && !e.IsPressed(MouseButton.Left))
+                resetParameters(PARAMS_LOOK);
+        }
+
+        public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => true;
         public Color4 BackgroundColour => new Color4(0, 0, 0, 0);
         public DrawColourInfo? FrameBufferDrawColour => base.DrawColourInfo;
         public Vector2 FrameBufferScale => Vector2.One;
