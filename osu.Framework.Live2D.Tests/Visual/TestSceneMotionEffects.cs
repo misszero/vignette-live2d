@@ -1,5 +1,7 @@
+using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
+using osu.Framework.Graphics.Cubism;
 
 namespace osu.Framework.Live2D.Tests.Visual
 {
@@ -20,6 +22,9 @@ namespace osu.Framework.Live2D.Tests.Visual
             AddAssert("is moving", () => Sprite.IsMoving);
             AddStep("set eyeblink false", () => Sprite.CanEyeBlink = false);
             AddAssert("is not moving", () => !Sprite.IsMoving);
+
+            string[] parameters = CubismSprite.PARAMS_EYE.Concat(CubismSprite.PARAMS_BREATH).ToArray();
+            Add(new ParameterMonitor(Sprite, parameters));
         }
     }
 }
