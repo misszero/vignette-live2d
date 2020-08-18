@@ -1,0 +1,22 @@
+name: publish to nuget
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  publish:
+    name: publish
+    runs-on: ubuntu-latest
+    step:
+      - uses: actions/checkout@v2
+
+      - name: publish on version change
+        id: publish
+        uses: rohith/publish-nuget@v2
+        with:
+          VERSION_FILE_PATH: Directory.Build.props
+          PROJECT_FILE_PATH: osu.Framework.Live2D/osu.Framework.Live2D.csproj
+          PACKAGE_NAME: osu.Framework.Live2D
+          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
