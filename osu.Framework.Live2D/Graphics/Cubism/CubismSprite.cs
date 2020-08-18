@@ -240,12 +240,10 @@ namespace osu.Framework.Graphics.Cubism
         {
             double dragX = ((point.X - (DrawWidth / 2)) / DrawWidth) * 2;
             double dragY = ((point.Y - (DrawHeight / 2)) / DrawHeight) * 2;
-            Asset.Model.RestoreSavedParameters();
             AddParameterValue("ParamAngleX", dragX * 30);
             AddParameterValue("ParamAngleY", dragY * -30);
             AddParameterValue("ParamAngleZ", dragX * dragY * -3);
             AddParameterValue("ParamBodyAngleX", dragX * 10);
-            Asset.Model.SaveParameters();
 
             if (!IsMoving)
                 Invalidate(Invalidation.DrawNode);

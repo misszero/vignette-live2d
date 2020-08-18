@@ -12,9 +12,12 @@ namespace osu.Framework.Live2D.Tests.Visual
         [BackgroundDependencyLoader]
         private void load()
         {
-            Sprite.LookType = CubismLookType.Hover;
-            Sprite.CanBreathe = true;
             Add(new ParameterMonitor(Sprite, CubismSprite.PARAMS_BREATH));
+
+            AddStep("effects", () => Sprite.CanBreathe = Sprite.CanEyeBlink = true);
+            AddStep("disable", () => Sprite.LookType = CubismLookType.None);
+            AddStep("drag mode", () => Sprite.LookType = CubismLookType.Drag);
+            AddStep("hover mode", () => Sprite.LookType = CubismLookType.Hover);
         }
     }
 }
