@@ -12,7 +12,4 @@ if ( ([int]($current[0]) -eq $year) -and ([int]($current[1]) -eq $monthDay) ) {
 
 $version = [string]::Format("{0}.{1}.{2}", [string]$year, [string]$monthDay, [string]$revision)
 & dotnet.exe pack ./osu.Framework.Live2D/osu.Framework.Live2D.csproj -c Release -o output /p:Version=$version
-
-foreach ($file in Get-ChildItem -Path "./output" | Where-Object {$_.Name -like "*.nupkg" -and $_.Name -notlike "*symbols*"}) {
-    & dotnet.exe nuget push $file --api-key $env:NUGET_API_KEY --skip-duplicate --no-symbols true
-}
+& dotnet.exe nuget push ./output/osu.Framework.Live2D.$version.nupkg --api-key $env:NUGET_API_KEY --skip-duplicate --no-symbols true
