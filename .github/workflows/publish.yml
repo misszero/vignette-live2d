@@ -19,11 +19,9 @@ jobs:
         uses: actions/setup-dotnet@v1
         with:
           source-url: https://api.nuget.org/v3/index.json
-        env:
-          NUGET_AUTH_TOKEN: ${{secrets.NUGET_API_KEY}}
       
       - name: Build
         run: dotnet pack ./osu.Framework.Live2D/osu.Framework.Live2D.csproj -c Release -o output
 
       - name: Publish
-        run: dotnet nuget push ./output/*.nupkg --skip-duplicate --no-symbols true
+        run: dotnet nuget push ./output/*.nupkg --api-key ${{secrets.NUGET_API_KEY}} --skip-duplicate --no-symbols true
