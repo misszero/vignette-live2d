@@ -8,7 +8,7 @@ on:
 jobs:
   publish:
     name: publish
-    runs-on: ubuntu-latest
+    runs-on: windows-2019
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -23,7 +23,8 @@ jobs:
           NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
       
       - name: Build
-        run: dotnet pack ./osu.Framework.Live2D/osu.Framework.Live2D.csproj -c Release -o output
+        run: ./deploy.ps1
+        shell: powershell
 
       - name: Publish
         run: dotnet nuget push ./output/*.nupkg --api-key ${{secrets.NUGET_API_KEY}} --skip-duplicate --no-symbols true

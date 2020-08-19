@@ -1,23 +1,19 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>netcoreapp3.1;netstandard2.1</TargetFrameworks>
+    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);CopyProjectReferencesToPackage</TargetsForTfmSpecificBuildOutput>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="ppy.osu.Framework" Version="2020.812.0"/>
-    <ProjectReference Include="..\CubismFrameworkCS\CubismFramework\CubismFramework.csproj"/>
+    <ProjectReference Include="..\CubismFrameworkCS\CubismFramework\CubismFramework.csproj" PrivateAssets="All"/>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\Shaders\*"/>
   </ItemGroup>
-  <ItemGroup>
-    <Content Include="bin\$(Configuration)\netcoreapp3.1\CubismFramework.dll">
-      <PackagePath>lib\netcoreapp3.1\</PackagePath>
-      <Pack>true</Pack>
-    </Content>
-    <Content Include="bin\$(Configuration)\netstandard2.1\CubismFramework.dll">
-      <PackagePath>lib\netstandard2.1\</PackagePath>
-      <Pack>true</Pack>
-    </Content>
-  </ItemGroup>
+  <Target Name="CopyProjectReferencesToPackage" DependsOnTargets="ResolveReferences">
+    <ItemGroup>
+      <BuildOutputInPackage Include="@(ReferenceCopyLocalPaths->WithMetadataValue('ReferenceSourceTarget', 'ProjectReference'))" />
+    </ItemGroup>
+  </Target>
 </Project>
