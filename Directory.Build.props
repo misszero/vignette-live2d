@@ -11,12 +11,11 @@
   <PropertyGroup Label="NuGet">
     <Authors>Nitrous</Authors>
     <Copyright>Copyright (c) 2020 Nitrous</Copyright>
-    <Version>$([System.DateTime]::UtcNow.ToString("yyyy.MM.dd"))</Version>
     <Product>osu!framework Live2D Extension</Product>
     <PackageReleaseNotes>Automated release.</PackageReleaseNotes>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageProjectUrl>https://github.com/LeNitrous/osu-framework-live2d</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/LeNitrous/osu-framework-live2d</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/holotrack/osu-framework-live2d</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/holotrack/osu-framework-live2d</RepositoryUrl>
   </PropertyGroup>
   <PropertyGroup Label="Sourcelink3">
     <EnableSourceLink Condition=" '$(OS)' != 'Windows_NT' AND '$(MSBuildRuntimeType)' != 'Core' ">false</EnableSourceLink>
