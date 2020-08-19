@@ -10,13 +10,22 @@ jobs:
     name: publish
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-
-      - name: publish on version change
-        id: publish
-        uses: rohith/publish-nuget@v2
+      - name: Checkout
+        uses: actions/checkout@v2
         with:
-          VERSION_FILE_PATH: Directory.Build.props
-          PROJECT_FILE_PATH: osu.Framework.Live2D/osu.Framework.Live2D.csproj
-          PACKAGE_NAME: osu.Framework.Live2D
-          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
+          submodules: recursive
+
+      - name: Setup
+        uses: actions/setup-dotnet@v1
+        with:
+          source-url: https://nuget.pkg.github.com/Nitrous/index.json
+        env:
+          NUGET_AUTH_TOKEN: ${{secrets.NUGET_API_KEY}}
+      
+      - name: Build
+        run: |
+          cd <project>
+          dotnet pack ./osu.Framework.Live2D/osu.Framework.Live2D.csproj -c Release -o output
+
+      - name: Publish
+        run: dotnet nuget push ./osu.Framework.Live2D/output/*.nupkg --skip-duplicate --no-symbols true

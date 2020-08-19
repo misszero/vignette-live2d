@@ -1,21 +1,20 @@
 <Project>
-    <PropertyGroup Label="C#">
-        <LangVersion>8.0</LangVersion>
-        <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    </PropertyGroup>
-    <ItemGroup Label="License">
-        <None Include="$(MSBuildThisFileDirectory)osu-framework-live2d.licenseheader">
-            <Link>osu-framework-live2d.licenseheader</Link>
-        </None>
+  <PropertyGroup Label="C#">
+      <LangVersion>8.0</LangVersion>
+      <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+  </PropertyGroup>
+  <ItemGroup Label="License">
+      <None Include="$(MSBuildThisFileDirectory)osu-framework-live2d.licenseheader">
+          <Link>osu-framework-live2d.licenseheader</Link>
+      </None>
   </ItemGroup>
   <PropertyGroup Label="NuGet">
     <Authors>Nitrous</Authors>
     <Copyright>Copyright (c) 2020 Nitrous</Copyright>
-    <Version>$([System.DateTime]::UtcNow.ToString("yyyy.MM.dd-HHmm"))</Version>
+    <Version>$([System.DateTime]::UtcNow.ToString("yyyy.MM.dd"))</Version>
     <Product>osu!framework Live2D Extension</Product>
     <PackageReleaseNotes>Automated release.</PackageReleaseNotes>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageIcon>icon.png</PackageIcon>
     <PackageProjectUrl>https://github.com/LeNitrous/osu-framework-live2d</PackageProjectUrl>
     <RepositoryUrl>https://github.com/LeNitrous/osu-framework-live2d</RepositoryUrl>
   </PropertyGroup>
