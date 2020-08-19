@@ -28,3 +28,4 @@ jobs:
 
       - name: Publish
         run: dotnet nuget push ./output/*.nupkg --api-key ${{secrets.NUGET_API_KEY}} --skip-duplicate --no-symbols true
+        shell: powershell
