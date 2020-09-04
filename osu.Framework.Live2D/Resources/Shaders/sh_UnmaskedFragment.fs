@@ -1,8 +1,4 @@
-#version 100
-
 #include "sh_Utils.h"
-
-precision mediump float;
 
 varying vec2 v_texCoord;
 uniform sampler2D s_texture0;
