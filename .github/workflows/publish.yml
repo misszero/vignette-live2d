@@ -23,7 +23,7 @@ jobs:
           NUGET_AUTH_TOKEN: ${{secrets.NUGET_API_KEY}}
       
       - name: Build and Publish
-        run: ./deploy.ps1
+        run: ./deploy-nuget.ps1
         shell: powershell
         env:
           NUGET_API_KEY: ${{secrets.NUGET_API_KEY}}
@@ -36,7 +36,5 @@ jobs:
           NUGET_AUTH_TOKEN: ${{secrets.GHPR_TOKEN}}
 
       - name: Build and Publish
-        run: ./deploy.ps1
+        run: ./deploy-ghpr.ps1
         shell: powershell
-        env:
-          NUGET_API_KEY: ${{secrets.GHPR_TOKEN}}
