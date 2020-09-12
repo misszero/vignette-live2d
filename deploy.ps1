@@ -10,7 +10,7 @@ if ( ([int]($current[0]) -eq $year) -and ([int]($current[1]) -eq $monthDay) ) {
     $revision = [int]($current[2]) + 1
 }
 
-if ([string]$monthDay.length -le 2) {
+if ($monthDay.length -eq 2) {
     $monthDay = "0" + $monthDay
 }
 
