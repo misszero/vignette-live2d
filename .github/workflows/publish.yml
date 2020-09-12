@@ -16,25 +16,27 @@ jobs:
           submodules: recursive
 
       - name: Setup
-        uses: actions/setup-dotnet@v1
+        uses: actions/setup-dotnet@main
         with:
           source-url: https://api.nuget.org/v3/index.json
         env:
           NUGET_AUTH_TOKEN: ${{secrets.NUGET_API_KEY}}
       
       - name: Build and Publish
-        run: ./deploy-nuget.ps1
+        run: ./deploy.ps1
         shell: powershell
         env:
           NUGET_API_KEY: ${{secrets.NUGET_API_KEY}}
 
       - name: Prepare Uploading for GitHub Registry
-        uses: actions/setup-dotnet@v1
+        uses: actions/setup-dotnet@main
         with:
           source-url: https://nuget.pkg.github.com/vignette-project/index.json
         env:
           NUGET_AUTH_TOKEN: ${{secrets.GHPR_TOKEN}}
 
       - name: Build and Publish
-        run: ./deploy-ghpr.ps1
+        run: ./deploy.ps1
         shell: powershell
+        env:
+          NUGET_API_KEY: ${{secrets.GHPR_TOKEN}}
