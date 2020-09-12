@@ -17,4 +17,4 @@ $version = [string]::Format("{0}.{1}.{2}", [string]$year, [string]$monthDay, [st
 
 # Mirroring to GitHub Package Registry
 dotnet.exe nuget add source https://nuget.pkg.github.com/vignette-project/index.json -n github -u vignette-project -p $env:GITHUB_TOKEN [--store-password-in-clear-text]
-dotnet.exe nuget push ./output/osu.Framework.Live2D.$version.nupkg --source "github"
+dotnet.exe nuget push ./output/osu.Framework.Live2D.$version.nupkg --source "github" --skip-duplicate --no-symbols true
