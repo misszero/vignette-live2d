@@ -3,7 +3,7 @@ $entries = Invoke-WebRequest $request | ConvertFrom-Json | Select-Object -expand
 
 $year = (Get-Date).Year
 $monthDay = [int]([String](Get-Date).Month + [String](Get-Date).Day)
-$current = $entries[0].items.catalogEntry.version.Split(".")
+$current = $entries.upper.split(".")
 $revision = 0
 
 if ( ([int]($current[0]) -eq $year) -and ([int]($current[1]) -eq $monthDay) ) {
