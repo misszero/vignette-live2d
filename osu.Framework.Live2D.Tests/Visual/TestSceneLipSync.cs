@@ -3,6 +3,7 @@
 
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
+using osu.Framework.Audio.Sample;
 
 namespace osu.Framework.Live2D.Tests.Visual
 {
@@ -15,7 +16,7 @@ namespace osu.Framework.Live2D.Tests.Visual
             Sprite.CanBreathe = true;
             Sprite.CanEyeBlink = true;
             Sprite.Voice = audio.Samples.Get("tone.wav");
-            AddStep("play sample", () => Sprite.Voice.Play());
+            AddStep("play sample", () => ((SampleChannel)Sprite.Voice).Play());
 
             Add(new ParameterMonitor(Sprite, new[] { "ParamMouthOpenY" }));
         }
