@@ -6,10 +6,11 @@ using System.Collections.Generic;
 using System.Linq;
 using CubismFramework;
 using osu.Framework.Allocation;
-using osu.Framework.Audio.Sample;
+using osu.Framework.Audio;
 using osu.Framework.Graphics.Cubism.Renderer;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Input.Events;
+using osu.Framework.Logging;
 using osuTK;
 using osuTK.Graphics;
 using osuTK.Graphics.ES30;
@@ -19,10 +20,14 @@ namespace osu.Framework.Graphics.Cubism
 {
     public partial class CubismSprite : Drawable, IBufferedDrawable
     {
-        public CubismRenderer Renderer = new CubismRenderer();
+        public CubismRenderer Renderer { get; set; } = new CubismRenderer();
         public CubismRenderingManager RenderingManager { get; private set; }
 
         private CubismAsset asset;
+
+        /// <summary>
+        /// The Live2D Model to use.
+        /// </summary>
         public CubismAsset Asset
         {
             get => asset;
@@ -39,11 +44,14 @@ namespace osu.Framework.Graphics.Cubism
             }
         }
 
+        /// <summary>
+        /// Whether the model is performing any motions.
+        /// </summary>
         public bool IsMoving
         {
             get
             {
-                if (Voice?.Playing ?? false)
+                if (Voice?.CurrentAmplitudes.Average > 0)
                     return true;
 
                 if (CanBreathe || CanEyeBlink)
@@ -60,7 +68,11 @@ namespace osu.Framework.Graphics.Cubism
         public int ExpressionsQueued => expressionQueue?.Queued ?? 0;
         public int EffectsQueued => effectQueue?.Queued ?? 0;
 
-        public SampleChannel Voice;
+        /// <summary>
+        /// The audio to use for lip syncing.
+        /// </summary>
+        public IHasAmplitudes Voice { get; set; }
+
         private CubismMotionQueueEntry eyeBlinkMotion;
         private CubismMotionQueueEntry breatheMotion;
         private CubismMotionQueue baseMotionQueue;
@@ -71,12 +83,23 @@ namespace osu.Framework.Graphics.Cubism
         public static string[] PARAMS_BREATH = PARAMS_LOOK.Concat(new[] { "ParamBreath" }).ToArray();
 
         private bool canBreathe;
+
+        /// <summary>
+        /// Whether to allow the model to perform breathing motions.
+        /// </summary>
         public bool CanBreathe
         {
             get => canBreathe;
             set
             {
                 if (canBreathe == value) return;
+
+                if (value && PARAMS_BREATH.All(param => !HasParameter(param)))
+                {
+                    Logger.Log(@"CubismAsset does not have the required parameters for breathing.");
+                    canBreathe = false;
+                    return;
+                }
 
                 canBreathe = value;
                 breatheMotion?.Terminate(0);
@@ -88,12 +111,23 @@ namespace osu.Framework.Graphics.Cubism
         }
 
         private bool canEyeBlink;
+
+        /// <summary>
+        /// Whether to allow the model to perform eyeblinking motions.
+        /// </summary>
         public bool CanEyeBlink
         {
             get => canEyeBlink;
             set
             {
                 if (canEyeBlink == value) return;
+
+                if (value && PARAMS_EYE.All(param => !HasParameter(param)))
+                {
+                    Logger.Log(@"CubismAsset does not have all the required parameters for eyeblinking.");
+                    canEyeBlink = false;
+                    return;
+                }
 
                 canEyeBlink = value;
                 eyeBlinkMotion?.Terminate(0);
@@ -104,7 +138,30 @@ namespace osu.Framework.Graphics.Cubism
             }
         }
 
-        public CubismLookType LookType = CubismLookType.None;
+        public bool CanSpeak => HasParameter("ParamMouthOpenY");
+
+        private CubismLookType lookType;
+
+        /// <summary>
+        /// Whether to allow the model to interact with the cursor. See <see cref="CubismLookType"/> for available ways.
+        /// </summary>
+        public CubismLookType LookType
+        {
+            get => lookType;
+            set
+            {
+                if (lookType == value) return;
+
+                if ((value != CubismLookType.None) && (PARAMS_LOOK.All(param => !HasParameter(param))))
+                {
+                    Logger.Log(@"CubismAsset does not have all the required parameters for look motion.");
+                    lookType = CubismLookType.None;
+                    return;
+                }
+
+                lookType = value;
+            }
+        }
 
         [BackgroundDependencyLoader]
         private void load(ShaderManager shaderManager)
@@ -222,6 +279,9 @@ namespace osu.Framework.Graphics.Cubism
             effectQueue = new CubismMotionQueue(Asset, MotionType.Effect);
 
             RenderingManager = new CubismRenderingManager(Renderer, Asset);
+
+            if (!CanSpeak)
+                Logger.Log(@"CubismAsset does not have the required parameters for lip syncing.");
         }
 
         private void initializeBreathing()
@@ -288,7 +348,8 @@ namespace osu.Framework.Graphics.Cubism
         {
             base.Update();
 
-            SetParameterValue("ParamMouthOpenY", Voice?.CurrentAmplitudes.Average ?? 0);
+            if (CanSpeak)
+                SetParameterValue("ParamMouthOpenY", Voice?.CurrentAmplitudes.Average ?? 0);
 
             Renderer.DrawSize = DrawSize;
             Asset.Update(Clock.ElapsedFrameTime / 1000);
