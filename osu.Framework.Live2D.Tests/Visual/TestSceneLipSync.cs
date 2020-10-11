@@ -8,13 +8,13 @@ using osu.Framework.Audio.Sample;
 namespace osu.Framework.Live2D.Tests.Visual
 {
     [System.ComponentModel.Description("Sync mouth movement with samples")]
-    public class TestSceneLipSync : TestSceneBase
+    public class TestSceneLipSync : CubismTestScene
     {
         [BackgroundDependencyLoader]
         private void load(AudioManager audio)
         {
-            Sprite.CanBreathe = true;
-            Sprite.CanEyeBlink = true;
+            Sprite.Breathing = true;
+            Sprite.Blinking = true;
             Sprite.Voice = audio.Samples.Get("tone.wav");
             AddStep("play sample", () => ((SampleChannel)Sprite.Voice).Play());
 

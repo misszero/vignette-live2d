@@ -1,15 +1,13 @@
 // Copyright (c) Nitrous <n20gaming2000@gmail.com>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System.Linq;
-using System.Reflection;
 using CubismFramework;
 using osu.Framework.Allocation;
 
 namespace osu.Framework.Live2D.Tests.Visual
 {
     [System.ComponentModel.Description("Add or remove motions in queue")]
-    public class TestSceneMotionQueue : TestSceneBase
+    public class TestSceneMotionQueue : CubismTestScene
     {
         [BackgroundDependencyLoader]
         private void load()

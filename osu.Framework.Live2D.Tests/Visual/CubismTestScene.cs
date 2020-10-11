@@ -10,7 +10,6 @@ using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cubism;
-using osu.Framework.Graphics.Cubism.Renderer;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Testing;
@@ -18,42 +17,39 @@ using osuTK;
 
 namespace osu.Framework.Live2D.Tests.Visual
 {
-    public abstract class TestSceneBase : TestScene
+    public abstract class CubismTestScene : TestScene
     {
         protected Container<Drawable> Container;
-        protected CubismSprite Sprite;
+        protected TestCubismSprite Sprite;
         protected static string[] Parameters => typeof(CubismDefaultParameterId)
                 .GetFields(BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy)
                 .Select(f => f.GetValue(null) as string).ToArray();
-        protected virtual Colour4 BackgroundColour => Colour4.Transparent;
 
         [BackgroundDependencyLoader]
-        private void load(CubismAssetStore cubismAssets)
+        private void load(CubismStore cubismAssets)
         {
             Add(Container = new Container<Drawable>
             {
                 Size = new Vector2(684),
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre,
-                Children = new Drawable[]
+                Child = Sprite = new TestCubismSprite(cubismAssets.Get("Hiyori.model3.json"))
                 {
-                    new Box
-                    {
-                        RelativeSizeAxes = Axes.Both,
-                        Colour = BackgroundColour
-                    },
-                    Sprite = new CubismSprite
-                    {
-                        RelativeSizeAxes = Axes.Both,
-                        Asset = cubismAssets.Get("Hiyori.Hiyori.model3.json"),
-                        Renderer = new CubismRenderer
-                        {
-                            Scale = new Vector2(2),
-                            Y = 384
-                        }
-                    }
+                    RelativeSizeAxes = Axes.Both
                 }
             });
+        }
+
+        protected class TestCubismSprite : CubismSprite
+        {
+            public int BaseMotionsQueued => BaseMotionQueue.Queued;
+            public int ExpressionsQueued => ExpressionQueue.Queued;
+            public int EffectsQueued => EffectQueue.Queued;
+
+            public TestCubismSprite(CubismAsset asset)
+                : base(asset)
+            {
+            }
         }
 
         protected class ParameterMonitor : FillFlowContainer
@@ -70,7 +66,7 @@ namespace osu.Framework.Live2D.Tests.Visual
                 this.sprite = sprite;
                 foreach (var param in parameters)
                 {
-                    if (sprite.Asset.Model.GetParameter(param) == null)
+                    if (!sprite.HasParameter(param))
                         continue;
 
                     var bar = new Box
