@@ -9,6 +9,12 @@
     <ProjectReference Include="..\CubismFrameworkCS\CubismFramework\CubismFramework.csproj" PrivateAssets="All"/>
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="3.0.0" PrivateAssets="All" />
+  </ItemGroup>
+  <PropertyGroup Label="Code Analysis">
+    <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)CodeAnalysis\osu-framework-live2d.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <ItemGroup>
     <EmbeddedResource Include="Resources\Shaders\*"/>
   </ItemGroup>
   <Target Name="CopyProjectReferencesToPackage" DependsOnTargets="ResolveReferences">
