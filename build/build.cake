@@ -23,7 +23,6 @@ var today = DateTime.Today;
 var version = "0.0.0";
 
 Task("DetermineVersion")
-    .WithCriteria(GitHubActions.IsRunningOnGitHubActions)
     .Does(() =>
     {
         var year = today.Year.ToString();
@@ -44,6 +43,8 @@ Task("DetermineVersion")
         {
             version = $"{year}.{monthDay}.0";
         }
+
+        Information(version);
     });
 
 Task("Clean")
@@ -101,7 +102,6 @@ Task("Test")
 
 Task("Pack")
     .IsDependentOn("DetermineVersion")
-    .WithCriteria(GitHubActions.IsRunningOnGitHubActions)
     .Does(() =>
     {
         var settings = new DotNetCorePackSettings
@@ -118,7 +118,7 @@ Task("Pack")
             }
         };
 
-        DotNetCorePack(library.FullPath);
+        DotNetCorePack(library.FullPath, settings);
     });
 
 Task("Build")
