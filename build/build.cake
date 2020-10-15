@@ -74,6 +74,7 @@ Task("Compile")
         });
     });
 
+// NOTE: Cake has MSBuild Log File Format 8 and the project has 9
 Task("CheckIssues")
     .WithCriteria(GitHubActions.IsRunningOnGitHubActions)
     .IsDependentOn("Compile")
@@ -82,6 +83,7 @@ Task("CheckIssues")
         ReportIssuesToPullRequest(MsBuildIssuesFromFilePath(logs.FullPath, MsBuildBinaryLogFileFormat), GitHubActionsBuilds(), rootDirectory);
     });
 
+// TODO: Apply Live2DCubismCore DLLs before running tests
 Task("Test")
     .Does(() =>
     {
@@ -121,7 +123,6 @@ Task("Pack")
 
 Task("Build")
     .IsDependentOn("Clean")
-    .IsDependentOn("Test")
     .IsDependentOn("Pack");
 
 RunTarget(target);
