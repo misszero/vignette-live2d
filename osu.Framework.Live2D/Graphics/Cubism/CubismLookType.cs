@@ -1,12 +1,23 @@
-// Copyright (c) Nitrous <n20gaming2000@gmail.com>. Licensed under the MIT Licence.
-// See the LICENCE file in the repository root for full licence text.
+// Copyright 2020 - 2021 Vignette Project
+// Licensed under MIT. See LICENSE for details.
 
 namespace osu.Framework.Graphics.Cubism
 {
     public enum CubismLookType
     {
+        /// <summary>
+        /// Disable looking.
+        /// </summary>
         None,
+
+        /// <summary>
+        /// Look at the cursor when hovered.
+        /// </summary>
         Hover,
-        Drag
+
+        /// <summary>
+        /// Look at the cursor when dragging.
+        /// </summary>
+        Drag,
     }
 }

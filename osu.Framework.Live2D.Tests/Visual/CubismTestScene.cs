@@ -1,5 +1,5 @@
-// Copyright (c) Nitrous <n20gaming2000@gmail.com>. Licensed under the MIT Licence.
-// See the LICENCE file in the repository root for full licence text.
+// Copyright 2020 - 2021 Vignette Project
+// Licensed under MIT. See LICENSE for details.
 
 using System;
 using System.Collections.Generic;
@@ -12,6 +12,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cubism;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.IO.Stores;
 using osu.Framework.Testing;
 using osuTK;
 
@@ -19,8 +20,10 @@ namespace osu.Framework.Live2D.Tests.Visual
 {
     public abstract class CubismTestScene : TestScene
     {
-        protected Container<Drawable> Container;
+        protected override ITestSceneTestRunner CreateRunner() => new CubismTestSceneTestRunner();
+
         protected TestCubismSprite Sprite;
+
         protected static string[] Parameters => typeof(CubismDefaultParameterId)
                 .GetFields(BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy)
                 .Select(f => f.GetValue(null) as string).ToArray();
@@ -28,34 +31,36 @@ namespace osu.Framework.Live2D.Tests.Visual
         [BackgroundDependencyLoader]
         private void load(CubismStore cubismAssets)
         {
-            Add(Container = new Container<Drawable>
+            Add(Sprite = new TestCubismSprite(cubismAssets.Get("Hiyori.model3.json"))
             {
                 Size = new Vector2(684),
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre,
-                Child = Sprite = new TestCubismSprite(cubismAssets.Get("Hiyori.model3.json"))
-                {
-                    RelativeSizeAxes = Axes.Both
-                }
             });
         }
 
+        public void AddParameterTracker(string[] names) => Add(new ParameterMonitor(Sprite, names));
+
+        public void AddParameterTracker(string name) => AddParameterTracker(new[] { name });
+
         protected class TestCubismSprite : CubismSprite
         {
-            public int BaseMotionsQueued => BaseMotionQueue.Queued;
-            public int ExpressionsQueued => ExpressionQueue.Queued;
-            public int EffectsQueued => EffectQueue.Queued;
-
             public TestCubismSprite(CubismAsset asset)
                 : base(asset)
             {
             }
+
+            public int BaseMotionsQueued => BaseMotionQueue.Queued;
+
+            public int ExpressionsQueued => ExpressionQueue.Queued;
+
+            public int EffectsQueued => EffectQueue.Queued;
         }
 
-        protected class ParameterMonitor : FillFlowContainer
+        private class ParameterMonitor : FillFlowContainer
         {
-            private CubismSprite sprite;
-            private Dictionary<string, Box> bars = new Dictionary<string, Box>();
+            private readonly CubismSprite sprite;
+            private readonly Dictionary<string, Box> bars = new Dictionary<string, Box>();
 
             public ParameterMonitor(CubismSprite sprite, string[] parameters)
             {
@@ -98,10 +103,10 @@ namespace osu.Framework.Live2D.Tests.Visual
                                         RelativeSizeAxes = Axes.Both,
                                         Colour = Colour4.White.Opacity(0.25f),
                                     },
-                                    bar
-                                }
-                            }
-                        }
+                                    bar,
+                                },
+                            },
+                        },
                     });
                 }
             }
@@ -117,8 +122,25 @@ namespace osu.Framework.Live2D.Tests.Visual
                     bar.Colour = param > 0 ? Colour4.White : Colour4.Red;
                 }
 
-                float map(float value, float fromSource, float toSource, float fromDestination, float toDestination) =>
-                    (value - fromSource) / (toSource - fromSource) * (toDestination - fromDestination) + fromDestination;
+                static float map(float value, float fromSource, float toSource, float fromDestination, float toDestination) =>
+                    ((value - fromSource) / ((toSource - fromSource) * (toDestination - fromDestination))) + fromDestination;
+            }
+        }
+
+        private class CubismTestSceneTestRunner : TestSceneTestRunner
+        {
+            private DependencyContainer dependencies;
+
+            protected override IReadOnlyDependencyContainer CreateChildDependencies(IReadOnlyDependencyContainer parent) =>
+                dependencies = new DependencyContainer(base.CreateChildDependencies(parent));
+
+            [BackgroundDependencyLoader]
+            private void load()
+            {
+                Resources.AddStore(new NamespacedResourceStore<byte[]>(new DllResourceStore(CubismResources.ResourceAssembly), "Resources"));
+                Resources.AddStore(new NamespacedResourceStore<byte[]>(new DllResourceStore(typeof(TestGame).Assembly), "Resources"));
+
+                dependencies.CacheAs<CubismStore>(new TestCubismStore(new NamespacedResourceStore<byte[]>(Resources, "Models")));
             }
         }
     }

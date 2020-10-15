@@ -1,5 +1,5 @@
-// Copyright (c) Nitrous <n20gaming2000@gmail.com>. Licensed under the MIT Licence.
-// See the LICENCE file in the repository root for full licence text.
+// Copyright 2020 - 2021 Vignette Project
+// Licensed under MIT. See LICENSE for details.
 
 using System.IO;
 using CubismFramework;
@@ -14,19 +14,19 @@ namespace osu.Framework.Graphics.Cubism
         {
         }
 
-        protected abstract Stream GetResource(string path);
-
         /// <summary>
         /// Loads a <see cref="CubismAsset"/> used for <see cref="CubismSprite"/>.
         /// </summary>
         /// <param name="name">The path to the model json file.</param>
-        /// <returns>The loaded CubismAsset</returns>
+        /// <returns>The loaded CubismAsset.</returns>
         public new CubismAsset Get(string name)
         {
             if (string.IsNullOrEmpty(name))
                 return null;
-            
+
             return new CubismAsset(name, GetResource);
         }
+
+        protected abstract Stream GetResource(string path);
     }
 }

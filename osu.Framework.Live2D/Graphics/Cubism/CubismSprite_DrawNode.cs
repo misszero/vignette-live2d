@@ -1,5 +1,5 @@
-// Copyright (c) Nitrous <n20gaming2000@gmail.com>. Licensed under the MIT Licence.
-// See the LICENCE file in the repository root for full licence text.
+// Copyright 2020 - 2021 Vignette Project
+// Licensed under MIT. See LICENSE for details.
 
 using System;
 using System.IO;
@@ -11,7 +11,6 @@ using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
-using osu.Framework.Statistics;
 using osuTK;
 using osuTK.Graphics.ES30;
 
@@ -19,22 +18,52 @@ namespace osu.Framework.Graphics.Cubism
 {
     public partial class CubismSprite
     {
+        protected class CubismShaderManager
+        {
+            private readonly IShader maskDrawingShader;
+            private readonly IShader unmaskedMeshDrawShader;
+            private readonly IShader maskedMeshDrawShader;
+            private readonly IShader maskedInvertedMeshDrawShader;
+            private readonly IShader unmaskedPremultAlphaMeshDrawShader;
+            private readonly IShader maskedPremultAlphaMeshDrawShader;
+            private readonly IShader maskedInvertedPremultAlphaMeshDrawShader;
+
+            public CubismShaderManager(ShaderManager shaderManager)
+            {
+                maskDrawingShader = shaderManager.Load("SetupMaskVertex", "SetupMaskFragment");
+                unmaskedMeshDrawShader = shaderManager.Load("UnmaskedVertex", "UnmaskedFragment");
+                maskedMeshDrawShader = shaderManager.Load("MaskedVertex", "MaskedFragment");
+                maskedInvertedMeshDrawShader = shaderManager.Load("MaskedVertex", "MaskedInvertedFragment");
+                unmaskedPremultAlphaMeshDrawShader = shaderManager.Load("UnmaskedVertex", "UnmaskedPremultipliedAlphaFragment");
+                maskedPremultAlphaMeshDrawShader = shaderManager.Load("MaskedVertex", "MaskedPremultipliedAlphaFragment");
+                maskedInvertedPremultAlphaMeshDrawShader = shaderManager.Load("MaskedVertex", "MaskedInvertedPremultipliedAlphaFragment");
+            }
+
+            public IShader GetDrawMaskShader() => maskDrawingShader;
+
+            public IShader GetDrawMeshShader(bool useClippingMask, bool usePremultipliedAlpha, bool useInvertedMask)
+            {
+                if (!useClippingMask)
+                    return (!usePremultipliedAlpha) ? unmaskedMeshDrawShader : unmaskedPremultAlphaMeshDrawShader;
+                else
+                    if (!usePremultipliedAlpha)
+                        return (!useInvertedMask) ? maskedMeshDrawShader : maskedInvertedMeshDrawShader;
+                    else
+                        return (!useInvertedMask) ? maskedPremultAlphaMeshDrawShader : maskedInvertedPremultAlphaMeshDrawShader;
+            }
+        }
+
         private class CubismSpriteDrawNode : DrawNode
         {
-            protected new CubismSprite Source => (CubismSprite)base.Source;
-
-            private CubismRenderingManager renderingManager;
+            private readonly CubismRenderingManager renderingManager;
 
             public CubismSpriteDrawNode(CubismSprite source)
                 : base(source)
             {
+                renderingManager = new CubismRenderingManager(new CubismRenderer(source), source.asset);
             }
 
-            public override void ApplyState()
-            {
-                base.ApplyState();
-                renderingManager = new CubismRenderingManager(new CubismRenderer(Source), Source.Asset);
-            }
+            protected new CubismSprite Source => (CubismSprite)base.Source;
 
             public override void Draw(Action<TexturedVertex2D> vertexAction)
             {
@@ -44,71 +73,67 @@ namespace osu.Framework.Graphics.Cubism
 
             protected override void Dispose(bool isDisposing)
             {
-                // We are handling disposal here to ensure that all draw calls have been performed to avoid race conditions
-                renderingManager?.Dispose();
-                Source.Asset?.Dispose();
                 base.Dispose(isDisposing);
+
+                // We are handling disposal here to ensure that all draw calls have been performed to avoid race conditions
+                renderingManager.Dispose();
             }
         }
 
         private unsafe class CubismRenderer : ICubismRenderer
         {
-            private static readonly GlobalStatistic<int> total_draws = GlobalStatistics.Get<int>("Draw", "DrawCalls");
-            private static readonly GlobalStatistic<int> total_verts = GlobalStatistics.Get<int>("Draw", "VerticesDraw");
+            private const int mask_size = 256;
             private readonly CubismShaderManager shaders;
             private readonly CubismRendererState state;
             private readonly CubismSprite sprite;
-            private const int mask_size = 256;
             private Matrix4 projectionMatrix;
+            private BlendModeType blendMode;
+            private bool useCulling;
+
+            public CubismRenderer(CubismSprite sprite)
+            {
+                this.sprite = sprite;
+                shaders = sprite.cubismShaders;
+                state = new CubismRendererState();
+            }
+
             public bool UsePremultipliedAlpha { get; set; }
 
-            private BlendModeType blendMode;
             public BlendModeType BlendMode
             {
                 get => blendMode;
                 set
                 {
                     blendMode = value;
-
-                    BlendingParameters parameters;
-                    switch (blendMode)
+                    var parameters = blendMode switch
                     {
-                        case BlendModeType.Normal:
-                            parameters = new BlendingParameters
-                            {
-                                Source = BlendingType.One,
-                                Destination = BlendingType.OneMinusSrcAlpha,
-                                SourceAlpha = BlendingType.One,
-                                DestinationAlpha = BlendingType.OneMinusSrcAlpha
-                            };
-                            break;
-                        case BlendModeType.Add:
-                            parameters = new BlendingParameters
-                            {
-                                Source = BlendingType.One,
-                                Destination = BlendingType.One,
-                                SourceAlpha = BlendingType.Zero,
-                                DestinationAlpha = BlendingType.One
-                            };
-                            break;
-                        case BlendModeType.Multiply:
-                            parameters = new BlendingParameters
-                            {
-                                Source = BlendingType.DstColor,
-                                Destination = BlendingType.OneMinusSrcAlpha,
-                                SourceAlpha = BlendingType.Zero,
-                                DestinationAlpha = BlendingType.One
-                            };
-                            break;
-                        default:
-                            throw new ArgumentException();
-                    }
-
+                        BlendModeType.Normal => new BlendingParameters
+                        {
+                            Source = BlendingType.One,
+                            Destination = BlendingType.OneMinusSrcAlpha,
+                            SourceAlpha = BlendingType.One,
+                            DestinationAlpha = BlendingType.OneMinusSrcAlpha,
+                        },
+                        BlendModeType.Add => new BlendingParameters
+                        {
+                            Source = BlendingType.One,
+                            Destination = BlendingType.One,
+                            SourceAlpha = BlendingType.Zero,
+                            DestinationAlpha = BlendingType.One,
+                        },
+                        BlendModeType.Multiply => new BlendingParameters
+                        {
+                            Source = BlendingType.DstColor,
+                            Destination = BlendingType.OneMinusSrcAlpha,
+                            SourceAlpha = BlendingType.Zero,
+                            DestinationAlpha = BlendingType.One,
+                        },
+                        _ => throw new ArgumentException($"{nameof(value)} is not a valid BlendMode."),
+                    };
                     GLWrapper.SetBlend(parameters);
                 }
             }
 
-            private bool useCulling;
             public bool UseCulling
             {
                 get => useCulling;
@@ -123,18 +148,9 @@ namespace osu.Framework.Graphics.Cubism
                 }
             }
 
-            public CubismRenderer(CubismSprite sprite)
-            {
-                this.sprite = sprite;
-                shaders = sprite.CubismShaders;
-                state = new CubismRendererState();
-            }
-
             public ICubismClippingMask CreateClippingMask()
             {
-                var mask = new CubismClippingMask();
-                mask.Size = new Vector2(mask_size);
-                return mask;
+                return new CubismClippingMask { Size = new Vector2(mask_size) };
             }
 
             public ICubismTexture CreateTexture(byte[] textureData)
@@ -171,7 +187,7 @@ namespace osu.Framework.Graphics.Cubism
                 GL.EnableVertexAttribArray(shader.GetAttributeLocation("a_position"));
                 fixed (float* pinnedVertexBuffer = vertexBuffer)
                     GL.VertexAttribPointer(shader.GetAttributeLocation("a_position"), 2, VertexAttribPointerType.Float, false, sizeof(float) * 2, (IntPtr)pinnedVertexBuffer);
-                
+
                 // Set the UV buffer
                 GL.EnableVertexAttribArray(shader.GetAttributeLocation("a_texCoord"));
                 fixed (float* pinnedUVBuffer = uvBuffer)
@@ -182,21 +198,19 @@ namespace osu.Framework.Graphics.Cubism
                     GL.DrawElements(PrimitiveType.Triangles, indexBuffer.Length, DrawElementsType.UnsignedShort, (IntPtr)pinnedIndexBuffer);
 
                 shader.Unbind();
-
-                total_draws.Value++;
-                total_verts.Value += vertexBuffer.Length;
             }
 
             public void DrawMesh(ICubismTexture itexture, float[] vertexBuffer, float[] uvBuffer, short[] indexBuffer, ICubismClippingMask clippingMask, Matrix4 clippingMatrix, BlendModeType blendMode, bool useCulling, bool isInvertedMask, double opacity)
             {
                 var texture = (CubismTexture)itexture;
                 var mask = clippingMask as CubismClippingMask;
-                bool useClippingMask = (mask != null);
+                bool useClippingMask = mask != null;
 
                 UseCulling = useCulling;
                 BlendMode = blendMode;
 
-                var shader = (Shader)shaders.GetDrawMeshShader(useClippingMask, UsePremultipliedAlpha, isInvertedMask);
+                // BUG: Using Inverted Masks causes eyes to be missing
+                var shader = (Shader)shaders.GetDrawMeshShader(useClippingMask, UsePremultipliedAlpha, false);
                 shader.Bind();
 
                 if (useClippingMask == true)
@@ -207,7 +221,9 @@ namespace osu.Framework.Graphics.Cubism
                     shader.GetUniform<Vector4>("u_channelFlag").Value = new Vector4(1.0f, 0.0f, 0.0f, 0.0f);
                 }
                 else
+                {
                     GLWrapper.BindTexture(null, TextureUnit.Texture1);
+                }
 
                 texture.Bind();
 
@@ -264,7 +280,7 @@ namespace osu.Framework.Graphics.Cubism
                     Source = BlendingType.Zero,
                     Destination = BlendingType.OneMinusSrcColor,
                     SourceAlpha = BlendingType.Zero,
-                    DestinationAlpha = BlendingType.OneMinusSrcAlpha
+                    DestinationAlpha = BlendingType.OneMinusSrcAlpha,
                 });
             }
 
@@ -308,50 +324,16 @@ namespace osu.Framework.Graphics.Cubism
 
                     GL.FrontFace((FrontFaceDirection)lastFrontFace);
 
-                    SetEnabled(EnableCap.CullFace, lastCullFace);
+                    setEnabled(EnableCap.CullFace, lastCullFace);
                 }
 
-                private static void SetEnabled(EnableCap cap, bool enabled)
+                private static void setEnabled(EnableCap cap, bool enabled)
                 {
                     if (enabled)
                         GL.Enable(cap);
                     else
                         GL.Disable(cap);
                 }
-            }
-        }
-
-        protected class CubismShaderManager
-        {
-            private IShader maskDrawingShader;
-            private IShader unmaskedMeshDrawShader;
-            private IShader maskedMeshDrawShader;
-            private IShader maskedInvertedMeshDrawShader;
-            private IShader unmaskedPremultAlphaMeshDrawShader;
-            private IShader maskedPremultAlphaMeshDrawShader;
-            private IShader maskedInvertedPremultAlphaMeshDrawShader;
-
-            public CubismShaderManager(ShaderManager shaderManager)
-            {
-                maskDrawingShader = shaderManager.Load("SetupMaskVertex", "SetupMaskFragment");
-                unmaskedMeshDrawShader = shaderManager.Load("UnmaskedVertex", "UnmaskedFragment");
-                maskedMeshDrawShader = shaderManager.Load("MaskedVertex", "MaskedFragment");
-                maskedInvertedMeshDrawShader = shaderManager.Load("MaskedVertex", "MaskedInvertedFragment");
-                unmaskedPremultAlphaMeshDrawShader = shaderManager.Load("UnmaskedVertex", "UnmaskedPremultipliedAlphaFragment");
-                maskedPremultAlphaMeshDrawShader = shaderManager.Load("MaskedVertex", "MaskedPremultipliedAlphaFragment");
-                maskedInvertedPremultAlphaMeshDrawShader = shaderManager.Load("MaskedVertex", "MaskedInvertedPremultipliedAlphaFragment");
-            }
-
-            public IShader GetDrawMaskShader() => maskDrawingShader;
-            public IShader GetDrawMeshShader(bool useClippingMask, bool usePremultipliedAlpha, bool useInvertedMask)
-            {
-                if (!useClippingMask)
-                    return (!usePremultipliedAlpha) ? unmaskedMeshDrawShader : unmaskedPremultAlphaMeshDrawShader;
-                else
-                    if (!usePremultipliedAlpha)
-                        return (!useInvertedMask) ? maskedMeshDrawShader : maskedInvertedMeshDrawShader;
-                    else
-                        return (!useInvertedMask) ? maskedPremultAlphaMeshDrawShader : maskedInvertedPremultAlphaMeshDrawShader;
             }
         }
 

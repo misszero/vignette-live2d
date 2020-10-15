@@ -1,5 +1,5 @@
-// Copyright (c) Nitrous <n20gaming2000@gmail.com>. Licensed under the MIT Licence.
-// See the LICENCE file in the repository root for full licence text.
+// Copyright 2020 - 2021 Vignette Project
+// Licensed under MIT. See LICENSE for details.
 
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
@@ -13,12 +13,11 @@ namespace osu.Framework.Live2D.Tests.Visual
         [BackgroundDependencyLoader]
         private void load(AudioManager audio)
         {
-            Sprite.Breathing = true;
-            Sprite.Blinking = true;
             Sprite.Voice = audio.Samples.Get("tone.wav");
-            AddStep("play sample", () => ((SampleChannel)Sprite.Voice).Play());
+            AddParameterTracker("ParamMouthOpenY");
 
-            Add(new ParameterMonitor(Sprite, new[] { "ParamMouthOpenY" }));
+            var voice = Sprite.Voice as SampleChannel;
+            AddStep("play sample", () => voice.Play());
         }
     }
 }

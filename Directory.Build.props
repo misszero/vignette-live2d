@@ -3,11 +3,6 @@
       <LangVersion>8.0</LangVersion>
       <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
-  <ItemGroup Label="License">
-      <None Include="$(MSBuildThisFileDirectory)osu-framework-live2d.licenseheader">
-          <Link>osu-framework-live2d.licenseheader</Link>
-      </None>
-  </ItemGroup>
   <PropertyGroup Label="NuGet">
     <Authors>Nitrous</Authors>
     <Copyright>Copyright (c) 2020 Nitrous</Copyright>
@@ -17,8 +12,14 @@
     <PackageProjectUrl>https://github.com/holotrack/osu-framework-live2d</PackageProjectUrl>
     <RepositoryUrl>https://github.com/holotrack/osu-framework-live2d</RepositoryUrl>
   </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="3.0.0" PrivateAssets="All" />
+  </ItemGroup>
   <PropertyGroup Label="Sourcelink3">
     <EnableSourceLink Condition=" '$(OS)' != 'Windows_NT' AND '$(MSBuildRuntimeType)' != 'Core' ">false</EnableSourceLink>
     <EnableSourceControlManagerQueries>$(EnableSourceLink)</EnableSourceControlManagerQueries>
+  </PropertyGroup>
+  <PropertyGroup Label="Code Analysis">
+    <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)CodeAnalysis\osu-framework-live2d.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
 </Project>

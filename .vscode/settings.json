@@ -3,5 +3,10 @@
         "**/bin": true,
         "**/obj": true
     },
-    "powershell.codeFormatting.addWhitespaceAroundPipe": true
+    "[csharp]": {
+        "editor.defaultFormatter": "ms-dotnettools.csharp"
+     },
+    "omnisharp.enableMsBuildLoadProjectsOnDemand": true,
+    "omnisharp.enableEditorConfigSupport": true,
+    "omnisharp.enableRoslynAnalyzers": true,
 }

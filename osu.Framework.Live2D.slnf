@@ -1,0 +1,9 @@
+{
+    "solution": {
+        "path": "osu-framework-live2d.sln",
+        "projects": [
+            "osu.Framework.Live2D/osu.Framework.Live2D.csproj",
+            "osu.Framework.Live2D.Tests/osu.Framework.Live2D.csproj"
+        ]
+    }
+}

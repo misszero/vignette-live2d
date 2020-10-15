@@ -1,5 +1,5 @@
-// Copyright (c) Nitrous <n20gaming2000@gmail.com>. Licensed under the MIT Licence.
-// See the LICENCE file in the repository root for full licence text.
+// Copyright 2020 - 2021 Vignette Project
+// Licensed under MIT. See LICENSE for details.
 
 using System.Collections.Generic;
 using CubismFramework;
@@ -10,12 +10,9 @@ namespace osu.Framework.Graphics.Cubism
     {
         protected class CubismMotionQueue
         {
-            public CubismMotionQueueEntry Current { get; private set; }
-            public bool IsActive => Current?.Playing ?? false;
-            public int Queued => queue.Count;
             private readonly CubismAsset asset;
             private readonly MotionType type;
-            private List<(ICubismMotion, bool)> queue = new List<(ICubismMotion, bool)>();
+            private readonly List<(ICubismMotion, bool)> queue = new List<(ICubismMotion, bool)>();
 
             public CubismMotionQueue(CubismAsset asset, MotionType type)
             {
@@ -23,9 +20,16 @@ namespace osu.Framework.Graphics.Cubism
                 this.type = type;
             }
 
+            public CubismMotionQueueEntry Current { get; private set; }
+
+            public bool IsActive => Current?.Playing ?? false;
+
+            public int Queued => queue.Count;
+
             public void Add(ICubismMotion motion, bool loop = false)
             {
-                lock (queue) queue.Add((motion, loop));
+                lock (queue)
+                    queue.Add((motion, loop));
             }
 
             public void Next(double fadeOutTime = 0)
@@ -38,7 +42,9 @@ namespace osu.Framework.Graphics.Cubism
 
             public void Stop(double fadeOutTime = 0)
             {
-                lock (queue) queue.Clear();
+                lock (queue)
+                    queue.Clear();
+
                 Current?.Terminate(fadeOutTime);
 
                 asset.Model.RestoreDefaultParameters();
@@ -52,7 +58,8 @@ namespace osu.Framework.Graphics.Cubism
                     var (motion, loop) = queue[0];
                     Current = asset.StartMotion(type, motion, loop);
 
-                    lock (queue)  queue.RemoveAll(entry => entry.Item1 == motion);
+                    lock (queue)
+                        queue.RemoveAll(entry => entry.Item1 == motion);
                 }
             }
         }

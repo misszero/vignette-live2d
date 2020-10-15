@@ -1,17 +1,17 @@
-﻿// Copyright (c) Nitrous <n20gaming2000@gmail.com>. Licensed under the MIT Licence.
-// See the LICENCE file in the repository root for full licence text.
+﻿// Copyright 2020 - 2021 Vignette Project
+// Licensed under MIT. See LICENSE for details.
 
 using System;
 using osu.Framework.Platform;
 
 namespace osu.Framework.Live2D.Tests
 {
-    class Program
+    public static class Program
     {
         [STAThread]
         public static void Main(string[] args)
         {
-            bool benchmark = args.Length > 0 && args[0] == @"-benchmark";
+            bool benchmark = args.Length > 0 && args[0] == @"--benchmark";
 
             using (GameHost host = Host.GetSuitableHost(@"osu-framework-live2d"))
             {
