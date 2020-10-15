@@ -83,7 +83,6 @@ Task("CheckIssues")
     });
 
 Task("Test")
-    .IsDependentOn("CheckIssues")
     .Does(() =>
     {
         var settings = new DotNetCoreTestSettings
