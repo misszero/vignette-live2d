@@ -75,6 +75,15 @@ Task("Compile")
         });
     });
 
+Task("CopyNativeLibs")
+    .WithCriteria(GitHubActions.IsRunningOnGitHubActions)
+    .IsDependentOn("Compile")
+    .Does(() =>
+    {
+        foreach (var directory in  GetDirectories(rootDirectory.Combine("osu.Framework.Live2D.Tests") + $"/bin/{configuration}/netcoreapp3.1"))
+            CopyFiles(GetFiles(rootDirectory + "/vignette.NativeLibs/runtimes/**/*"), directory.Combine("runtimes"), true);
+    });
+
 // NOTE: Cake has MSBuild Log File Format 8 and the project has 9
 Task("CheckIssues")
     .WithCriteria(GitHubActions.IsRunningOnGitHubActions)
@@ -84,8 +93,8 @@ Task("CheckIssues")
         ReportIssuesToPullRequest(MsBuildIssuesFromFilePath(logs.FullPath, MsBuildBinaryLogFileFormat), GitHubActionsBuilds(), rootDirectory);
     });
 
-// TODO: Apply Live2DCubismCore DLLs before running tests
 Task("Test")
+    .IsDependentOn("CopyNativeLibs")
     .Does(() =>
     {
         var settings = new DotNetCoreTestSettings
@@ -123,6 +132,7 @@ Task("Pack")
 
 Task("Build")
     .IsDependentOn("Clean")
+    .IsDependentOn("Test")
     .IsDependentOn("Pack");
 
 RunTarget(target);
