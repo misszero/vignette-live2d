@@ -14,19 +14,7 @@
             "presentation": {
                 "reveal": "silent"
             },
-            "problemMatcher": "$msCompile",
-            "dependsOn": [ "prebuild" ]
-        },
-        {
-            "label": "prebuild",
-            "command": "copy",
-            "type": "shell",
-            "args": [
-                "-Path",
-                "'${workspaceFolder}/CubismFrameworkCS/dll/windows/x86_64/*.dll'",
-                "-Destination",
-                "'${workspaceFolder}/osu.Framework.Live2D.Tests/bin/Debug/netcoreapp3.1/'"
-            ]
+            "problemMatcher": "$msCompile"
         }
     ]
 }

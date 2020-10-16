@@ -1,0 +1,39 @@
+name: test
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+      - master
+  repository_dispatch:
+    types: [ push-nativelibs ]
+
+jobs:
+  test:
+    name: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - name: Checkout NativeLibs
+        uses: actions/checkout@v2
+        with:
+          repository: vignette-project/vignette-native
+          path: vignette.NativeLibs
+
+      - name: Setup
+        uses: actions/setup-dotnet@main
+        with:
+          source-url: https://api.nuget.org/v3/index.json
+        env:
+          NUGET_AUTH_TOKEN: ${{secrets.NUGET_API_KEY}}
+      
+      - name: Test
+        uses: cake-build/cake-action@v1
+        with:
+          script-path: ./build/build.cake
+          target: Test

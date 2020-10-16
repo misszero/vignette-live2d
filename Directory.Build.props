@@ -4,14 +4,20 @@
       <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
   <PropertyGroup Label="NuGet">
-    <Authors>Nitrous</Authors>
-    <Copyright>Copyright (c) 2020 Nitrous</Copyright>
+    <Authors>Vignette Project</Authors>
+    <Copyright>Copyright (c) 2020 Vignette Project</Copyright>
     <Product>osu!framework Live2D Extension</Product>
     <PackageReleaseNotes>Automated release.</PackageReleaseNotes>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/holotrack/osu-framework-live2d</PackageProjectUrl>
     <RepositoryUrl>https://github.com/holotrack/osu-framework-live2d</RepositoryUrl>
   </PropertyGroup>
+  <ItemGroup Label="Icon">
+    <None Include="$(MSBuildThisFileDirectory)assets\icon.png">
+      <Pack>True</Pack>
+      <PackagePath>icon.png</PackagePath>
+    </None>
+  </ItemGroup>
   <PropertyGroup Label="Sourcelink3">
     <EnableSourceLink Condition=" '$(OS)' != 'Windows_NT' AND '$(MSBuildRuntimeType)' != 'Core' ">false</EnableSourceLink>
     <EnableSourceControlManagerQueries>$(EnableSourceLink)</EnableSourceControlManagerQueries>
