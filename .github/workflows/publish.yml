@@ -21,6 +21,8 @@ jobs:
         uses: actions/setup-dotnet@main
         with:
           source-url: https://api.nuget.org/v3/index.json
+        env:
+          NUGET_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
       - name: Run Cake Build Script
         uses: cake-build/cake-action@v1
