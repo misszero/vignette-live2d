@@ -13,7 +13,7 @@ namespace Vignette.Application.Live2D.Json
 
         public float FadeInTime { get; set; }
 
-        public List<List<string>> Groups { get; set; } = new List<List<string>>();
+        public List<List<Group>> Groups { get; set; } = new List<List<Group>>();
 
         public class Group
         {

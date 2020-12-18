@@ -58,7 +58,7 @@ namespace Vignette.Application.Live2D.Json
             {
                 public SourceDestination Source { get; set; }
 
-                public double Weight { get; set; }
+                public float Weight { get; set; }
 
                 public string Type { get; set; }
 
@@ -71,9 +71,9 @@ namespace Vignette.Application.Live2D.Json
 
                 public int VertexIndex { get; set; }
 
-                public double Scale { get; set; }
+                public float Scale { get; set; }
 
-                public double Weight { get; set; }
+                public float Weight { get; set; }
 
                 public string Type { get; set; }
 
@@ -84,13 +84,13 @@ namespace Vignette.Application.Live2D.Json
             {
                 public Vector2D Position { get; set; }
 
-                public double Mobility { get; set; }
+                public float Mobility { get; set; }
 
-                public double Delay { get; set; }
+                public float Delay { get; set; }
 
-                public double Acceleration { get; set; }
+                public float Acceleration { get; set; }
 
-                public double Radius { get; set; }
+                public float Radius { get; set; }
             }
 
             public class NormalizationSetting
@@ -109,19 +109,19 @@ namespace Vignette.Application.Live2D.Json
 
             public class MinMaxSetting
             {
-                public double Minimum { get; set; }
+                public float Minimum { get; set; }
 
-                public double Default { get; set; }
+                public float Default { get; set; }
 
-                public double Maximum { get; set; }
+                public float Maximum { get; set; }
             }
         }
 
         public class Vector2D
         {
-            public double X { get; set; }
+            public float X { get; set; }
 
-            public double Y { get; set; }
+            public float Y { get; set; }
         }
     }
 }

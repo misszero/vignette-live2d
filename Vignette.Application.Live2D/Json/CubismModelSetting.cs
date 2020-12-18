@@ -21,6 +21,8 @@ namespace Vignette.Application.Live2D.Json
         {
             public string Moc { get; set; }
 
+            public string DisplayInfo { get; set; }
+
             public Dictionary<string, List<Motion>> Motions { get; set; }
 
             public Dictionary<string, List<Expression>> Expressions { get; set; }
