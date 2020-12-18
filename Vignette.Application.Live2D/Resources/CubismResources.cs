@@ -3,7 +3,7 @@
 
 using System.Reflection;
 
-namespace osu.Framework.Resources
+namespace Vignette.Application.Live2D.Resources
 {
     public static class CubismResources
     {
