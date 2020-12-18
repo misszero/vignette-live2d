@@ -4,26 +4,35 @@
     <TargetFramework>net5.0</TargetFramework>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
   <ItemGroup>
-    <None Remove="Resources\Shaders\sh_FragmentShaderSrcMaskInvertedPremultipliedAlpha.fs" />
-    <None Remove="Resources\Shaders\sh_FragmentShaderSrcMaskPremultipliedAlpha.fs" />
-    <None Remove="Resources\Shaders\sh_FragmentShaderSrcSetupMask.fs" />
-    <None Remove="Resources\Shaders\sh_VertexShaderSrc.vs" />
-    <None Remove="Resources\Shaders\sh_VertexShaderSrcMasked.vs" />
-    <None Remove="Resources\Shaders\sh_VertexShaderSrcSetupMask.vs" />
+    <EmbeddedResource Include="Resources\**\*" />
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Resources\Shaders\sh_FragmentShaderSrcMaskInvertedPremultipliedAlpha.fs" />
-    <EmbeddedResource Include="Resources\Shaders\sh_FragmentShaderSrcMaskPremultipliedAlpha.fs" />
-    <EmbeddedResource Include="Resources\Shaders\sh_FragmentShaderSrcSetupMask.fs" />
-    <EmbeddedResource Include="Resources\Shaders\sh_VertexShaderSrc.vs" />
-    <EmbeddedResource Include="Resources\Shaders\sh_VertexShaderSrcMasked.vs" />
-    <EmbeddedResource Include="Resources\Shaders\sh_VertexShaderSrcSetupMask.vs" />
+    <None Remove="Resources\Shaders\sh_FragShaderSrc.fs" />
+    <None Remove="Resources\Shaders\sh_FragShaderSrcMask.fs" />
+    <None Remove="Resources\Shaders\sh_FragShaderSrcMaskInverted.fs" />
+    <None Remove="Resources\Shaders\sh_FragShaderSrcMaskInvertedPremultipliedAlpha.fs" />
+    <None Remove="Resources\Shaders\sh_FragShaderSrcMaskPremultipliedAlpha.fs" />
+    <None Remove="Resources\Shaders\sh_FragShaderSrcPremultipliedAlpha.fs" />
+    <None Remove="Resources\Shaders\sh_FragShaderSrcSetupMask.fs" />
+    <None Remove="Resources\Shaders\sh_VertShaderSrc.vs" />
+    <None Remove="Resources\Shaders\sh_VertShaderSrcMasked.vs" />
+    <None Remove="Resources\Shaders\sh_VertShaderSrcSetupMask.vs" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="ppy.osu.Framework" Version="2020.1203.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <_Parameter1>$(AssemblyName).Tests</_Parameter1>
+    </AssemblyAttribute>
   </ItemGroup>
 
 </Project>
