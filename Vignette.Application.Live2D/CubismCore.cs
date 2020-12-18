@@ -4,6 +4,7 @@
 using System;
 using System.Runtime.InteropServices;
 using Vignette.Application.Live2D.Model;
+using Vignette.Application.Live2D.Utils;
 
 namespace Vignette.Application.Live2D
 {
@@ -30,7 +31,7 @@ namespace Vignette.Application.Live2D
 #pragma warning disable IDE1006
 
         [DllImport(library, ExactSpelling = true)]
-        public static extern uint csmGetMocVersion(IntPtr address);
+        public static extern CubismMocVersion csmGetMocVersion(IntPtr address);
 
         [DllImport(library, ExactSpelling = true)]
         public static extern CubismLogFunction csmGetLogFunction();
@@ -39,13 +40,13 @@ namespace Vignette.Application.Live2D
         public static extern void csmSetLogFunction(CubismLogFunction function);
 
         [DllImport(library, ExactSpelling = true)]
-        public static extern IntPtr csmReviveMocInPlace(IntPtr address, uint size);
+        public static extern IntPtr csmReviveMocInPlace(IntPtr address, int size);
 
         [DllImport(library, ExactSpelling = true)]
-        public static extern uint csmGetSizeofModel(IntPtr moc);
+        public static extern int csmGetSizeofModel(IntPtr moc);
 
         [DllImport(library, ExactSpelling = true)]
-        public static extern IntPtr csmInitializeModelInPlace(IntPtr moc, IntPtr address, uint size);
+        public static extern IntPtr csmInitializeModelInPlace(IntPtr moc, IntPtr address, int size);
 
         [DllImport(library, ExactSpelling = true)]
         public static extern void csmUpdateModel(IntPtr model);
@@ -53,28 +54,24 @@ namespace Vignette.Application.Live2D
         [DllImport(library, ExactSpelling = true)]
         public static extern void csmReadCanvasInfo(
             IntPtr model,
-            [In, Out] CubismVector2 outSizeInPixels,
-            [In, Out] CubismVector2 outOriginInPixels,
+            [In, Out] float[] outSizeInPixels,
+            [In, Out] float[] outOriginInPixels,
             out float outPixelsPerUnit);
 
         [DllImport(library, ExactSpelling = true)]
         public static extern int csmGetParameterCount(IntPtr model);
 
         [DllImport(library, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.LPStr)]
-        public static extern string[] csmGetParameterIds(IntPtr model);
+        public static extern IntPtr csmGetParameterIds(IntPtr model);
 
         [DllImport(library, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.LPArray)]
-        public static extern float[] csmGetParameterMinimumValues(IntPtr model);
+        public static extern IntPtr csmGetParameterMinimumValues(IntPtr model);
 
         [DllImport(library, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.LPArray)]
-        public static extern float[] csmGetParameterMaximumValues(IntPtr model);
+        public static extern IntPtr csmGetParameterMaximumValues(IntPtr model);
 
         [DllImport(library, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.LPArray)]
-        public static extern float[] csmGetParameterDefaultValues(IntPtr model);
+        public static extern IntPtr csmGetParameterDefaultValues(IntPtr model);
 
         [DllImport(library, ExactSpelling = true)]
         public static extern IntPtr csmGetParameterValues(IntPtr model);
@@ -83,74 +80,58 @@ namespace Vignette.Application.Live2D
         public static extern int csmGetPartCount(IntPtr model);
 
         [DllImport(library, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.LPStr)]
-        public static extern string[] csmGetPartIds(IntPtr model);
+        public static extern IntPtr csmGetPartIds(IntPtr model);
 
         [DllImport(library, ExactSpelling = true)]
         public static extern IntPtr csmGetPartOpacities(IntPtr model);
 
         [DllImport(library, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.LPArray)]
-        public static extern int[] csmGetPartParentPartIndices(IntPtr model);
+        public static extern IntPtr csmGetPartParentPartIndices(IntPtr model);
 
         [DllImport(library, ExactSpelling = true)]
         public static extern int csmGetDrawableCount(IntPtr model);
 
         [DllImport(library, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.LPStr)]
-        public static extern string[] csmGetDrawableIds(IntPtr model);
+        public static extern IntPtr csmGetDrawableIds(IntPtr model);
 
         [DllImport(library, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.LPArray)]
-        public static extern ConstantDrawableFlags[] csmGetDrawableConstantFlags(IntPtr model);
+        public static extern IntPtr csmGetDrawableConstantFlags(IntPtr model);
 
         [DllImport(library, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.LPArray)]
-        public static extern DynamicDrawableFlags[] csmGetDrawableDynamicFlags(IntPtr model);
+        public static extern IntPtr csmGetDrawableDynamicFlags(IntPtr model);
 
         [DllImport(library, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.LPArray)]
-        public static extern int[] csmGetDrawableTextureIndices(IntPtr model);
+        public static extern IntPtr csmGetDrawableTextureIndices(IntPtr model);
 
         [DllImport(library, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.LPArray)]
-        public static extern int[] csmGetDrawableDrawOrders(IntPtr model);
+        public static extern IntPtr csmGetDrawableDrawOrders(IntPtr model);
 
         [DllImport(library, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.LPArray)]
-        public static extern int[] csmGetDrawableRenderOrders(IntPtr model);
+        public static extern IntPtr csmGetDrawableRenderOrders(IntPtr model);
 
         [DllImport(library, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.LPArray)]
-        public static extern float[] csmGetDrawableOpacities(IntPtr model);
+        public static extern IntPtr csmGetDrawableOpacities(IntPtr model);
 
         [DllImport(library, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.LPArray)]
-        public static extern int[] csmGetDrawableMaskCounts(IntPtr model);
+        public static extern IntPtr csmGetDrawableMaskCounts(IntPtr model);
 
         [DllImport(library, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.LPArray)]
-        public static extern int[][] csmGetDrawableMasks(IntPtr model);
+        public static extern IntPtr csmGetDrawableMasks(IntPtr model);
 
         [DllImport(library, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.LPArray)]
-        public static extern int[] csmGetDrawableVertexCounts(IntPtr model);
+        public static extern IntPtr csmGetDrawableVertexCounts(IntPtr model);
 
         [DllImport(library, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.LPArray)]
-        public static extern CubismVector2[][] csmGetDrawableVertexPositions(IntPtr model);
+        public static extern IntPtr csmGetDrawableVertexPositions(IntPtr model);
 
         [DllImport(library, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.LPArray)]
-        public static extern CubismVector2[][] csmGetDrawableVertexUvs(IntPtr model);
+        public static extern IntPtr csmGetDrawableVertexUvs(IntPtr model);
 
         [DllImport(library, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.LPArray)]
-        public static extern int[] csmGetDrawableIndexCounts(IntPtr model);
+        public static extern IntPtr csmGetDrawableIndexCounts(IntPtr model);
 
         [DllImport(library, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.LPArray)]
-        public static extern short[][] csmGetDrawableIndices(IntPtr model);
+        public static extern IntPtr csmGetDrawableIndices(IntPtr model);
 
         [DllImport(library, ExactSpelling = true)]
         public static extern void csmResetDrawableDynamicFlags(IntPtr model);
