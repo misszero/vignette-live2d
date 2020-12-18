@@ -5,6 +5,7 @@ using System;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Vignette.Application.Live2D.Id;
+using Vignette.Application.Live2D.Utils;
 
 namespace Vignette.Application.Live2D.Model
 {
@@ -18,7 +19,7 @@ namespace Vignette.Application.Live2D.Model
             handle = CubismCore.csmGetPartOpacities(model);
 
             int count = CubismCore.csmGetPartCount(model);
-            string[] names = CubismCore.csmGetPartIds(model);
+            string[] names = CubismUtils.PointerToStringArray(CubismCore.csmGetPartIds(model), count);
 
             for (int i = 0; i < count; i++)
                 Add(new CubismPart(i, names[i]));

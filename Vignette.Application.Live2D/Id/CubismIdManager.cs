@@ -8,24 +8,38 @@ using System.Linq;
 
 namespace Vignette.Application.Live2D.Id
 {
-    public abstract class CubismIdManager<T> : IEnumerable<T>, IReadOnlyList<T>
-        where T : CubismId
+    public abstract class CubismIdManager
     {
-        private readonly List<T> items = new List<T>();
-
         protected readonly IntPtr Model;
-
-        public int Count => items.Count;
 
         public CubismIdManager(IntPtr model)
         {
             Model = model;
         }
 
+        public virtual void PreModelUpdate()
+        {
+        }
+
+        public abstract void PostModelUpdate();
+    }
+
+    public abstract class CubismIdManager<T> : CubismIdManager, IEnumerable<T>, IReadOnlyList<T>
+        where T : CubismId
+    {
+        private readonly List<T> items = new List<T>();
+
+        public int Count => items.Count;
+
+        public CubismIdManager(IntPtr model)
+            : base(model)
+        {
+        }
+
         protected void Add(T id)
         {
             if (Has(id))
-                throw new ArgumentException($"ID {id.Index} already exists within this manager.");
+                throw new ArgumentException($"ID {id.Id} already exists within this manager.");
 
             items.Add(id);
         }
@@ -40,15 +54,9 @@ namespace Vignette.Application.Live2D.Id
 
         public bool Has(T id) => items.Any(i => i == id);
 
-        public bool Has(int index) => items.Any(i => i.Index == index);
+        public bool Has(int index) => items.Any(i => i.Id == index);
 
         public bool Has(string name) => items.Any((id => id.Name == name));
-
-        public virtual void PreModelUpdate()
-        {
-        }
-
-        public abstract void PostModelUpdate();
 
         public IEnumerator<T> GetEnumerator() => items.GetEnumerator();
 

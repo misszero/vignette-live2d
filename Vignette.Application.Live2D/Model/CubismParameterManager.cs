@@ -5,6 +5,7 @@ using System;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Vignette.Application.Live2D.Id;
+using Vignette.Application.Live2D.Utils;
 
 namespace Vignette.Application.Live2D.Model
 {
@@ -18,10 +19,10 @@ namespace Vignette.Application.Live2D.Model
             handle = CubismCore.csmGetParameterValues(model);
 
             int count = CubismCore.csmGetParameterCount(model);
-            float[] def = CubismCore.csmGetParameterDefaultValues(model);
-            float[] min = CubismCore.csmGetParameterMinimumValues(model);
-            float[] max = CubismCore.csmGetParameterMaximumValues(model);
-            string[] names = CubismCore.csmGetParameterIds(model);
+            float[] def = CubismUtils.PointerToFloatArray(CubismCore.csmGetParameterDefaultValues(model), count);
+            float[] min = CubismUtils.PointerToFloatArray(CubismCore.csmGetParameterMinimumValues(model), count);
+            float[] max = CubismUtils.PointerToFloatArray(CubismCore.csmGetParameterMaximumValues(model), count);
+            string[] names = CubismUtils.PointerToStringArray(CubismCore.csmGetParameterIds(model), count);
 
             for (int i = 0; i < count; i++)
                 Add(new CubismParameter(i, names[i], min[i], max[i], def[i]));

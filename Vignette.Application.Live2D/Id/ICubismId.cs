@@ -7,6 +7,6 @@ namespace Vignette.Application.Live2D.Id
     {
         string Name { get; }
 
-        int Index { get; }
+        int Id { get; }
     }
 }

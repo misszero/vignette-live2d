@@ -1,9 +1,8 @@
 ﻿// Copyright 2020 - 2021 Vignette Project
 // Licensed under MIT. See LICENSE for details.
 
-using System.Collections.Generic;
-using System.Linq;
-using osuTK;
+using System;
+using osu.Framework.Graphics.Primitives;
 using Vignette.Application.Live2D.Id;
 
 namespace Vignette.Application.Live2D.Model
@@ -14,54 +13,72 @@ namespace Vignette.Application.Live2D.Model
 
         public readonly int[] Masks;
 
-        public readonly bool Culling;
+        public readonly float[] TextureCoordinates;
 
-        public readonly bool Inverse;
+        public readonly short[] Indices;
 
-        // I don't think Vertices, TextureCoordinates, and Indices should be exposed like this.
-        // But for now, since we dont know what to do with it, might as well leave it as is.
-        public List<Vector2> Vertices { get; private set; }
+        public int RenderOrder { get; private set; }
 
-        public List<Vector2> TextureCoordinates { get; private set; }
-
-        public short[] Indices { get; private set; }
-
-        public bool Visible { get; private set; }
+        public float[] Vertices { get; private set; }
 
         public float Opacity { get; private set; }
 
-        public bool OpacityChanged { get; private set; }
+        public ConstantDrawableFlags ConstantFlags { get; private set; }
 
-        public bool PositionsChanged { get; private set; }
+        public DynamicDrawableFlags DynamicFlags { get; private set; }
 
-        public bool DrawOrderChanged { get; private set; }
+        public RectangleF Bounds
+        {
+            get
+            {
+                if (Vertices == null)
+                    return RectangleF.Empty;
 
-        public bool VisibilityChanged { get; private set; }
+                int vertexCount = Vertices.Length / 2;
+                float minX = float.MaxValue;
+                float minY = float.MaxValue;
+                float maxX = float.MinValue;
+                float maxY = float.MinValue;
 
-        public bool RenderOrderChanged { get; private set; }
+                for (int i = 0; i < vertexCount; i++)
+                {
+                    float x = Vertices[2 * i];
+                    float y = Vertices[2 * i + 1];
+                    minX = MathF.Min(minX, x);
+                    maxX = MathF.Max(maxX, x);
+                    minY = MathF.Min(minY, y);
+                    maxY = MathF.Max(maxY, y);
+                }
 
-        internal CubismDrawable(int index, string name, int textureId, int[] masks, ConstantDrawableFlags constantFlags)
+                var rect = RectangleF.Empty;
+                if ((minX < maxX) && (minY < maxY))
+                {
+                    rect.X = minX;
+                    rect.Y = minY;
+                    rect.Width = maxX - minX;
+                    rect.Height = maxY - minY;
+                }
+
+                return rect;
+            }
+        }
+
+        internal CubismDrawable(int index, string name, int textureId, int[] masks, float[] textureCoords, short[] indices, ConstantDrawableFlags flags)
             : base(index, name)
         {
             Masks = masks;
+            Indices = indices;
             TextureId = textureId;
-            Culling = (constantFlags & ConstantDrawableFlags.IsDoubleSided) == 0;
-            Inverse = (constantFlags & ConstantDrawableFlags.IsInvertedMask) == 0;
+            ConstantFlags = flags;
+            TextureCoordinates = textureCoords;
         }
 
-        public void Update(float opacity, CubismVector2[] vertices, CubismVector2[] textureCoords, short[] indices, DynamicDrawableFlags flags)
+        public void Update(float opacity, int renderOrder, float[] vertices,  DynamicDrawableFlags flags)
         {
             Opacity = opacity;
-            Indices = indices;
-            Vertices = vertices.Select(v => v.ToVector2()).ToList();
-            TextureCoordinates = textureCoords.Select(v => v.ToVector2()).ToList();
-
-            Visible = (flags & DynamicDrawableFlags.Visible) != 0;
-            VisibilityChanged = (flags & DynamicDrawableFlags.VisibilityChanged) != 0;
-            OpacityChanged = (flags & DynamicDrawableFlags.OpacityChanged) != 0;
-            PositionsChanged = (flags & DynamicDrawableFlags.VertexPositionsChanged) != 0;
-            DrawOrderChanged = (flags & DynamicDrawableFlags.DrawOrderChanged) != 0;
-            RenderOrderChanged = (flags & DynamicDrawableFlags.RenderOrderChanged) != 0;
+            Vertices = vertices;
+            RenderOrder = renderOrder;
+            DynamicFlags = flags;
         }
     }
 }
