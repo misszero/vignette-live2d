@@ -8,7 +8,7 @@ namespace Vignette.Application.Live2D.Utils
 {
     public static class CubismMath
     {
-        public static float EaseSine(float t) => Math.Clamp(0.5f - 0.5f * MathF.Cos(MathF.PI * t), 0, 1);
+        public static double EaseSine(double t) => Math.Clamp(0.5f - 0.5f * Math.Cos(Math.PI * t), 0, 1);
 
         public static float DegreesToRadian(float degrees) => (degrees / 180.0f) * MathF.PI;
 

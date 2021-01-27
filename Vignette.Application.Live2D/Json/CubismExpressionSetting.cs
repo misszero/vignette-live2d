@@ -1,6 +1,8 @@
 ﻿// Copyright 2020 - 2021 Vignette Project
 // Licensed under MIT. See LICENSE for details.
 
+using System.Collections.Generic;
+
 namespace Vignette.Application.Live2D.Json
 {
     public class CubismExpressionSetting : ICubismJsonSetting
@@ -13,7 +15,7 @@ namespace Vignette.Application.Live2D.Json
 
         public float FadeOutTime { get; set; } = 1.0f;
 
-        public Parameter[] Parameters { get; set; }
+        public List<Parameter> Parameters { get; set; }
 
         public class Parameter
         {

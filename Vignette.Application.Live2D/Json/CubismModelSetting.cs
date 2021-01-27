@@ -39,9 +39,9 @@ namespace Vignette.Application.Live2D.Json
             {
                 public string File { get; set; }
 
-                public float FadeInTime { get; set; } = float.NaN;
+                public float FadeInTime { get; set; }
 
-                public float FadeOutTime { get; set; } = float.NaN;
+                public float FadeOutTime { get; set; }
             }
 
             public class Expression
