@@ -345,15 +345,15 @@ namespace Vignette.Application.Live2D.Physics
 
         private float getRangeValue(float min, float max)
         {
-            float maxValue = MathF.Max(min, max);
-            float minValue = MathF.Min(min, max);
+            float maxValue = CubismMath.Maximum(min, max);
+            float minValue = CubismMath.Minimum(min, max);
 
             return MathF.Abs(maxValue - minValue);
         }
 
         private float getDefaultValue(float min, float max)
         {
-            float minValue = MathF.Min(min, max);
+            float minValue = CubismMath.Minimum(min, max);
             return minValue + getRangeValue(min, max) / 2.0f;
         }
 
@@ -370,16 +370,16 @@ namespace Vignette.Application.Live2D.Physics
         {
             float result = 0;
 
-            float maxValue = MathF.Max(paramMax, paramMin);
+            float maxValue = CubismMath.Maximum(paramMax, paramMin);
             if (maxValue < value)
                 value = maxValue;
 
-            float minValue = MathF.Min(paramMax, paramMin);
+            float minValue = CubismMath.Minimum(paramMax, paramMin);
             if (minValue > value)
                 value = minValue;
 
-            float minNormValue = MathF.Min(normalizedMin, normalizedMax);
-            float maxNormValue = MathF.Max(normalizedMin, normalizedMax);
+            float minNormValue = CubismMath.Minimum(normalizedMin, normalizedMax);
+            float maxNormValue = CubismMath.Maximum(normalizedMin, normalizedMax);
             float midNormValue = normalizedDef;
 
             float midValue = getDefaultValue(minValue, maxValue);
@@ -392,7 +392,7 @@ namespace Vignette.Application.Live2D.Physics
                     float nLength = maxNormValue - midNormValue;
                     float pLength = maxValue - midValue;
 
-                    if (pLength != 0)
+                    if (pLength != 0.0f)
                     {
                         result = paramValue * (nLength / pLength);
                         result += midNormValue;
