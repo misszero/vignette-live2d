@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
@@ -10,19 +10,6 @@
 
   <ItemGroup>
     <EmbeddedResource Include="Resources\**\*" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Remove="Resources\Shaders\sh_FragShaderSrc.fs" />
-    <None Remove="Resources\Shaders\sh_FragShaderSrcMask.fs" />
-    <None Remove="Resources\Shaders\sh_FragShaderSrcMaskInverted.fs" />
-    <None Remove="Resources\Shaders\sh_FragShaderSrcMaskInvertedPremultipliedAlpha.fs" />
-    <None Remove="Resources\Shaders\sh_FragShaderSrcMaskPremultipliedAlpha.fs" />
-    <None Remove="Resources\Shaders\sh_FragShaderSrcPremultipliedAlpha.fs" />
-    <None Remove="Resources\Shaders\sh_FragShaderSrcSetupMask.fs" />
-    <None Remove="Resources\Shaders\sh_VertShaderSrc.vs" />
-    <None Remove="Resources\Shaders\sh_VertShaderSrcMasked.vs" />
-    <None Remove="Resources\Shaders\sh_VertShaderSrcSetupMask.vs" />
   </ItemGroup>
 
   <ItemGroup>
