@@ -18,7 +18,7 @@ namespace Vignette.Application.Live2D.Graphics
             : base(source)
         {
             renderer = source.Renderer;
-            renderer.UsePremultipliedAlpha = false;
+            renderer.UsePremultipliedAlpha = source.UsePremultipliedAlpha;
         }
 
         public override void Draw(Action<TexturedVertex2D> vertexAction)

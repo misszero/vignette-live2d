@@ -16,6 +16,8 @@ namespace Vignette.Application.Live2D.Graphics
 {
     public class CubismSprite : Drawable, IBufferedDrawable
     {
+        public bool UsePremultipliedAlpha { get; set; }
+
         public float ScaleAdjust { get; set; } = 1.0f;
 
         public float PositionXAdjust

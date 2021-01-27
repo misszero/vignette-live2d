@@ -32,20 +32,6 @@ namespace Vignette.Application.Live2D.Graphics
             this.shaders.Add(shaders.Load(@"VertShaderSrc", @"FragShaderSrcPremultipliedAlpha"));
             this.shaders.Add(shaders.Load(@"VertShaderSrcMasked", @"FragShaderSrcMaskPremultipliedAlpha"));
             this.shaders.Add(shaders.Load(@"VertShaderSrcMasked", @"FragShaderSrcMaskInvertedPremultipliedAlpha"));
-
-            this.shaders.Add(this.shaders[1]);
-            this.shaders.Add(this.shaders[2]);
-            this.shaders.Add(this.shaders[3]);
-            this.shaders.Add(this.shaders[4]);
-            this.shaders.Add(this.shaders[5]);
-            this.shaders.Add(this.shaders[6]);
-
-            this.shaders.Add(this.shaders[1]);
-            this.shaders.Add(this.shaders[2]);
-            this.shaders.Add(this.shaders[3]);
-            this.shaders.Add(this.shaders[4]);
-            this.shaders.Add(this.shaders[5]);
-            this.shaders.Add(this.shaders[6]);
         }
 
         protected override void DrawMask(CubismDrawable drawable, Matrix4 clippingMatrix)
@@ -81,14 +67,14 @@ namespace Vignette.Application.Live2D.Graphics
 
         protected override void DrawMesh(CubismDrawable drawable, Texture texture, FrameBuffer clippingMask, Matrix4 drawMatrix)
         {
-            int offset = (clippingMask != null ? (drawable.ConstantFlags.HasFlag(ConstantDrawableFlags.IsInvertedMask) ? 2 : 1) : 0) + (UsePremultipliedAlpha ? 3 : 0);
+            int offset = 1 + (clippingMask != null ? (drawable.ConstantFlags.HasFlag(ConstantDrawableFlags.IsInvertedMask) ? 2 : 1) : 0) + (UsePremultipliedAlpha ? 3 : 0);
 
             IShader shader;
             BlendingParameters blendingParameters;
             
             if (drawable.ConstantFlags.HasFlag(ConstantDrawableFlags.BlendMultiplicative))
             {
-                shader = shaders[(int)ShaderNames.Multiply + offset];
+                shader = shaders[offset];
                 blendingParameters = new BlendingParameters
                 {
                     Source = BlendingType.DstColor,
@@ -99,7 +85,7 @@ namespace Vignette.Application.Live2D.Graphics
             }
             else if (drawable.ConstantFlags.HasFlag(ConstantDrawableFlags.BlendAdditive))
             {
-                shader = shaders[(int)ShaderNames.Add + offset];
+                shader = shaders[offset];
                 blendingParameters = new BlendingParameters
                 {
                     Source = BlendingType.One,
@@ -110,7 +96,7 @@ namespace Vignette.Application.Live2D.Graphics
             }
             else
             {
-                shader = shaders[(int)ShaderNames.Normal + offset];
+                shader = shaders[offset];
                 blendingParameters = new BlendingParameters
                 {
                     Source = BlendingType.One,
@@ -234,47 +220,6 @@ namespace Vignette.Application.Live2D.Graphics
                 else
                     GL.Disable(EnableCap.CullFace);
             }
-        }
-
-        private enum ShaderNames
-        {
-            SetupMask,
-
-            Normal,
-
-            NormalMasked,
-
-            NormalMaskedInverted,
-
-            NormalPremultipliedAlpha,
-
-            NormalMaskedPremultipliedAlpha,
-
-            NormalMaskedPremultipliedAlphaInverted,
-
-            Add,
-
-            AddMasked,
-
-            AddMaskedInverted,
-
-            AddPremultipliedAlpha,
-
-            AddMaskedPremultipliedAlpha,
-
-            AddMaskedPremultipliedAlphaInverted,
-
-            Multiply,
-
-            MultiplyMasked,
-
-            MultiplyMaskedInverted,
-
-            MultiplyPremultipliedAlpha,
-
-            MultiplyMaskedPremultipliedAlpha,
-
-            MultiplyMaskedPremultipliedAlphaInverted,
         }
     }
 }
