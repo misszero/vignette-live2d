@@ -7,7 +7,7 @@ insert_final_newline = true
 indent_style = space
 indent_size = 4
 trim_trailing_whitespace = true
-file_header_template = Copyright 2020 - 2021 Vignette Project\nLicensed under MIT. See LICENSE for details.
+file_header_template = Copyright 2020 - 2021 Vignette Project\nLicensed under MIT. See LICENSE for details.\nThis software implements Live2D. Copyright (c) Live2D Inc. All Rights Reserved.\nLicense for Live2D can be found here: http://live2d.com/eula/live2d-open-software-license-agreement_en.html
 
 #Roslyn naming styles
 
