@@ -500,7 +500,7 @@ namespace Vignette.Application.Live2D.Physics
             float outputValue = parentGravity.X;
 
             if (isInverted)
-                outputValue *= -1;
+                outputValue *= -1.0f;
 
             return outputValue;
         }
@@ -516,7 +516,7 @@ namespace Vignette.Application.Live2D.Physics
             float outputValue = parentGravity.Y;
 
             if (isInverted)
-                outputValue *= -1;
+                outputValue *= -1.0f;
 
             return outputValue;
         }
@@ -534,12 +534,12 @@ namespace Vignette.Application.Live2D.Physics
             if (particleIndex >= 2)
                 parentGravity = particles[particleIndex - 1].Position - particles[particleIndex - 2].Position;
             else
-                parentGravity *= -1;
+                parentGravity *= -1.0f;
 
             outputValue = CubismMath.DirectionToRadian(parentGravity, translation);
 
             if (isInverted)
-                outputValue *= -1;
+                outputValue *= -1.0f;
 
             return outputValue;
         }
