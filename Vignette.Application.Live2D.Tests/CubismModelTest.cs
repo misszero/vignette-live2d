@@ -17,7 +17,7 @@ namespace Vignette.Application.Live2D.Tests
         [SetUp]
         public void SetUp()
         {
-            var moc = new CubismMoc(TestResources.GetModelResource("hibiki/hibiki.moc3"));
+            var moc = new CubismMoc(TestResources.GetModelResource("Hiyori.moc3"));
             model = new CubismModel(moc);
         }
 
@@ -28,7 +28,7 @@ namespace Vignette.Application.Live2D.Tests
 
             float[] prev = CubismUtils.PointerToFloatArray(paramHandle, model.Parameters.Count);
 
-            var param = model.Parameters.Get("PARAM_EYE_L_OPEN");
+            var param = model.Parameters.Get("ParamEyeLOpen");
             param.Value = param.Minimum;
 
             Assert.IsTrue(!prev.SequenceEqual(model.Parameters.Select(p => p.Value)));
