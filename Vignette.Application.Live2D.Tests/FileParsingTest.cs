@@ -8,6 +8,7 @@ using NUnit.Framework;
 using Vignette.Application.Live2D.Json;
 using Vignette.Application.Live2D.Model;
 using Vignette.Application.Live2D.Motion;
+using Vignette.Application.Live2D.Motion.Pose;
 using Vignette.Application.Live2D.Physics;
 using Vignette.Application.Live2D.Tests.Resources;
 
@@ -61,14 +62,13 @@ namespace Vignette.Application.Live2D.Tests
             Assert.DoesNotThrow(() => motion.Update(1));
         }
 
-        //[Test]
-        //public void TestPoseFileParsing()
-        //{
-        //    var pose = new CubismPose(loadJsonFile<CubismPoseSetting>(@"Hiyori.pose3.json"), model);
+        [Test]
+        public void TestPoseFileParsing()
+        {
+            var pose = new CubismPose(model, loadJsonFile<CubismPoseSetting>(@"Hiyori.pose3.json"));
 
-        //    Assert.IsTrue(pose.PartGroups.Count > 0);
-        //    Assert.DoesNotThrow(() => pose.Update(1));
-        //}
+            Assert.DoesNotThrow(() => pose.Update(1));
+        }
 
         [Test]
         public void TestPhysicsFileParsing()
@@ -77,11 +77,6 @@ namespace Vignette.Application.Live2D.Tests
 
             Assert.DoesNotThrow(() => physics.Update(1));
         }
-
-        // [Test]
-        // public void TestExpressionFileParsing()
-        // {
-        // }
 
         [TearDown]
         public void TearDown()
