@@ -299,9 +299,9 @@ namespace Vignette.Application.Live2D.Physics
                 strand[i].Position = strand[i - 1].Position + (newDirection * strand[i].Radius);
 
                 if (MathF.Abs(strand[i].Position.X) < thresholdValue)
-                    strand[i].Position = new Vector2(0.0f, strand[i].Position.Y);
+                    strand[i].Position = new Vector2(0, strand[i].Position.Y);
 
-                if (delay != 0.0f)
+                if (delay != 0)
                 {
                     strand[i].Velocity = strand[i].Position - strand[i].LastPosition;
                     strand[i].Velocity /= delay;
@@ -392,7 +392,7 @@ namespace Vignette.Application.Live2D.Physics
                     float nLength = maxNormValue - midNormValue;
                     float pLength = maxValue - midValue;
 
-                    if (pLength != 0.0f)
+                    if (pLength != 0)
                     {
                         result = paramValue * (nLength / pLength);
                         result += midNormValue;
@@ -406,7 +406,7 @@ namespace Vignette.Application.Live2D.Physics
                     float nLength = minNormValue - midNormValue;
                     float pLength = minValue - midValue;
 
-                    if (pLength != 0.0f)
+                    if (pLength != 0)
                     {
                         result = paramValue * (nLength / pLength);
                         result += midNormValue;
