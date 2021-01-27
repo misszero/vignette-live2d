@@ -37,8 +37,6 @@ namespace Vignette.Application.Live2D.Tests.Visual
 
         protected override CubismSprite CreateSprite(CubismModel model, IEnumerable<Texture> textures) => new CubismSpriteWithPhysics(model, textures)
         {
-            ScaleAdjust = 6f,
-            PositionAdjust = new Vector2(0, 1400),
         };
 
         private class CubismSpriteWithPhysics : CubismSprite
