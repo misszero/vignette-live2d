@@ -34,8 +34,11 @@ namespace Vignette.Application.Live2D.Tests.Visual
 
         protected override CubismSprite CreateSprite(CubismModel model, IEnumerable<Texture> textures) => new CubismSpriteWithEyeblinkEffect(model, textures)
         {
-            ScaleAdjust = 7.5f,
-            PositionAdjust = new Vector2(0, 1750),
+            Canvas = new CanvasOptions
+            {
+                Y = 0.5f,
+                Scale = 7.5f,
+            }
         };
 
         private class CubismSpriteWithEyeblinkEffect : CubismSprite
