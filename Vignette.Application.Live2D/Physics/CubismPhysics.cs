@@ -55,6 +55,13 @@ namespace Vignette.Application.Live2D.Physics
                         Default = setting.PhysicsSettings[i].Normalization.Position.Default,
                     },
 
+                    NormalizationAngle = new PhysicsNormalization
+                    {
+                        Minimum = setting.PhysicsSettings[i].Normalization.Angle.Minimum,
+                        Maximum = setting.PhysicsSettings[i].Normalization.Angle.Maximum,
+                        Default = setting.PhysicsSettings[i].Normalization.Angle.Default,
+                    },
+
                     InputCount = setting.PhysicsSettings[i].Input.Count,
                     BaseInputIndex = inputIndex
                 };
@@ -441,7 +448,7 @@ namespace Vignette.Application.Live2D.Physics
                 parameter.Maximum,
                 parameter.Default,
                 normalizationPosition.Minimum,
-                normalizationPosition.Minimum,
+                normalizationPosition.Maximum,
                 normalizationPosition.Default,
                 isInverted
             ) * weight;
@@ -463,7 +470,7 @@ namespace Vignette.Application.Live2D.Physics
                 parameter.Maximum,
                 parameter.Default,
                 normalizationPosition.Minimum,
-                normalizationPosition.Minimum,
+                normalizationPosition.Maximum,
                 normalizationPosition.Default,
                 isInverted
             ) * weight;
