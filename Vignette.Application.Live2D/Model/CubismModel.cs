@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using osuTK;
 using Vignette.Application.Live2D.Id;
 using Vignette.Application.Live2D.Utils;
 
@@ -22,6 +23,8 @@ namespace Vignette.Application.Live2D.Model
         private bool isDisposed;
 
         public IntPtr Handle { get; private set; }
+
+        public Vector2 Size { get; private set; }
 
         public CubismPartManager Parts { get; private set; }
 
@@ -43,6 +46,12 @@ namespace Vignette.Application.Live2D.Model
                 Drawables = new CubismDrawableManager(Handle),
                 Parameters = new CubismParameterManager(Handle),
             });
+
+            float[] sizeInPixels = new float[2];
+            float[] originInPixels = new float[2];
+            CubismCore.csmReadCanvasInfo(Handle, sizeInPixels, originInPixels, out float pixelsPerUnit);
+
+            Size = new Vector2(sizeInPixels[0], sizeInPixels[1]) / pixelsPerUnit;
 
             // Obtain default values first
             foreach (var manager in managers)
