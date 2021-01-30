@@ -5,6 +5,7 @@
 
 using System;
 using osuTK;
+using Vignette.Application.Live2D.Model;
 
 namespace Vignette.Application.Live2D.Utils
 {
@@ -50,6 +51,89 @@ namespace Vignette.Application.Live2D.Utils
             return degree;
         }
 
+
+
         public static Vector2 RadianToDirection(float totalAngle) => new Vector2(MathF.Sin(totalAngle), MathF.Cos(totalAngle));
+
+        public static float GetRangeValue(float min, float max)
+        {
+            var maxValue = MathF.Max(min, max);
+            var minValue = MathF.Min(min, max);
+
+            return MathF.Abs(maxValue - minValue);
+        }
+
+        public static float GetDefaultValue(float min, float max)
+        {
+            var minValue = MathF.Min(min, max);
+            return minValue + (GetRangeValue(min, max) / 2.0f);
+        }
+
+        public static float Normalize(CubismParameter parameter, float normalizedMinimum, float normalizedMaximum, float normalizedDefault, bool isInverted = false)
+        {
+            var result = 0.0f;
+
+            var maxValue = MathF.Max(parameter.Maximum, parameter.Minimum);
+
+            if (maxValue < parameter.Value)
+            {
+                parameter.Value = maxValue;
+            }
+
+            var minValue = MathF.Min(parameter.Maximum, parameter.Minimum);
+
+            if (minValue > parameter.Value)
+            {
+                parameter.Value = minValue;
+            }
+
+            var minNormValue = MathF.Min(normalizedMinimum, normalizedMaximum);
+            var maxNormValue = MathF.Max(normalizedMinimum, normalizedMaximum);
+            var middleNormValue = normalizedDefault;
+
+            var middleValue = GetDefaultValue(minValue, maxValue);
+            var paramValue = parameter.Value - middleValue;
+
+            switch((int)MathF.Sign(paramValue))
+            {
+                case 1:
+                {
+                    var nLength = maxNormValue - middleNormValue;
+                    var pLength = maxValue - middleValue;
+
+                    if (pLength != 0.0f)
+                    {
+                        result = paramValue * (nLength / pLength);
+                        result += middleNormValue;
+                    }
+
+                    break;
+                }
+
+                case -1:
+                {
+                    var nLength = minNormValue - middleNormValue;
+                    var pLength = minValue - middleValue;
+
+                    if (pLength != 0.0f)
+                    {
+                        result = paramValue * (nLength / pLength);
+                        result += middleNormValue;
+                    }
+
+                    break;
+                }
+
+                case 0:
+                {
+                    result = middleNormValue;
+
+                    break;
+                }
+            }
+
+            return (isInverted) ? result : (result * -1.0f);
+        }
+
     }
 }
