@@ -17,6 +17,10 @@ namespace Vignette.Application.Live2D.Physics2
 
         public static float MaximumWeight = 100.0f;
 
+        public static bool UseAngleCorrection = false;
+
+        public static bool UseFixedDeltaTime = false;
+
         public const float MovementTreshold = 0.000f;
     }
 }

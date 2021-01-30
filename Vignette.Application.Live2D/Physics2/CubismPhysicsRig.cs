@@ -3,18 +3,16 @@
 // This software implements Live2D. Copyright (c) Live2D Inc. All Rights Reserved.
 // License for Live2D can be found here: http://live2d.com/eula/live2d-open-software-license-agreement_en.html
 
+using osuTK;
+
 namespace Vignette.Application.Live2D.Physics2
 {
-    public class CubismPhysicsSubRig
+    public class CubismPhysicsRig
     {
-        public CubismPhysicsInput[] Input;
+        public CubismPhysicsSubRig[] SubRigs;
 
-        public CubismPhysicsOutput[] Output;
+        public Vector2 Gravity = CubismPhysics.Gravity;
 
-        public CubismPhysicsParticle[] Particles;
-
-        public CubismPhysicsNormalization Normalization;
-
-        public CubismPhysicsRig Rig { get; set; }
+        public Vector2 Wind = CubismPhysics.Wind;
     }
 }

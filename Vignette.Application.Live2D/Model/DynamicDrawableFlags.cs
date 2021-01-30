@@ -20,6 +20,8 @@ namespace Vignette.Application.Live2D.Model
 
         RenderOrderChanged = 0x10,
 
-        VertexPositionsChanged = 0x20
+        VertexPositionsChanged = 0x20,
+
+        IsInverted = 0x40
     }
 }

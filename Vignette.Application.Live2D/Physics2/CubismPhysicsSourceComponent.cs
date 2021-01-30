@@ -5,16 +5,10 @@
 
 namespace Vignette.Application.Live2D.Physics2
 {
-    public class CubismPhysicsSubRig
+    public enum CubismPhysicsSourceComponent
     {
-        public CubismPhysicsInput[] Input;
-
-        public CubismPhysicsOutput[] Output;
-
-        public CubismPhysicsParticle[] Particles;
-
-        public CubismPhysicsNormalization Normalization;
-
-        public CubismPhysicsRig Rig { get; set; }
+        X,
+        Y,
+        Angle
     }
 }
