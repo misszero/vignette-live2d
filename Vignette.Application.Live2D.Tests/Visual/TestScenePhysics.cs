@@ -10,45 +10,30 @@ using osu.Framework.Graphics.Textures;
 using Vignette.Application.Live2D.Graphics;
 using Vignette.Application.Live2D.Json;
 using Vignette.Application.Live2D.Model;
-using Vignette.Application.Live2D.Motion;
 using Vignette.Application.Live2D.Physics;
 using Vignette.Application.Live2D.Tests.Resources;
 
 namespace Vignette.Application.Live2D.Tests.Visual
 {
-    public class TestScenePhysics : TestSceneCubismSprite
+    public class TestScenePhysics : TestSceneMotion
     {
-        protected override float SpriteSize => 1024.0f;
-
         protected override CubismSprite CreateSprite(CubismModel model, IEnumerable<Texture> textures) => new CubismSpriteWithPhysics(model, textures);
 
-        private class CubismSpriteWithPhysics : CubismSprite
+        private class CubismSpriteWithPhysics : CubismSpriteWithMotion
         {
             private readonly CubismPhysics physics;
-
-            private readonly CubismMotion motion;
 
             public CubismSpriteWithPhysics(CubismModel model, IEnumerable<Texture> textures, bool disposeModel = false)
                 : base(model, textures, disposeModel)
             {
-                using var mots = new StreamReader(TestResources.GetModelResource(@"motions/Hiyori_m02.motion3.json"));
-                using var phys = new StreamReader(TestResources.GetModelResource(@"Hiyori.physics3.json"));
-
-                physics = new CubismPhysics(model, JsonSerializer.Deserialize<CubismPhysicsSetting>(phys.ReadToEnd()));
-                motion = new CubismMotion(model, JsonSerializer.Deserialize<CubismMotionSetting>(mots.ReadToEnd()))
-                {
-                    Weight = 1.0,
-                    LoopFading = true,
-                    GlobalFadeInSeconds = 0.5,
-                    GlobalFadeOutSeconds = 0.5,
-                };
+                using var reader = new StreamReader(TestResources.GetModelResource(@"Hiyori.physics3.json"));
+                physics = new CubismPhysics(model, JsonSerializer.Deserialize<CubismPhysicsSetting>(reader.ReadToEnd()));
             }
 
             protected override void Update()
             {
                 base.Update();
 
-                motion.Update(Clock.CurrentTime / 1000);
                 physics.Update(Clock.ElapsedFrameTime / 1000);
             }
         }

@@ -10,6 +10,8 @@ namespace Vignette.Application.Live2D.Model
 {
     public class CubismModelMatrix
     {
+        public Matrix4 Matrix => matrix;
+
         public float Width
         {
             get => size.X * matrix[0, 0];

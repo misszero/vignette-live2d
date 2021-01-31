@@ -22,11 +22,11 @@ namespace Vignette.Application.Live2D.Graphics
 
         public CanvasOptions Canvas { get; set; } = new CanvasOptions();
 
+        private readonly bool disposeModel;
+
         private readonly CubismModel model;
 
         private readonly List<Texture> textures;
-
-        private readonly bool disposeModel;
 
         public CubismSprite(CubismModel model, IEnumerable<Texture> textures, bool disposeModel = false)
         {
@@ -46,6 +46,7 @@ namespace Vignette.Application.Live2D.Graphics
         protected override void Update()
         {
             base.Update();
+
             model.Update();
 
             Invalidate(Invalidation.DrawNode);

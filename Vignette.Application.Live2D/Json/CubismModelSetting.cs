@@ -15,7 +15,7 @@ namespace Vignette.Application.Live2D.Json
 
         public FileReference FileReferences { get; set; }
 
-        public List<HitArea> HithAreas { get; set; }
+        public List<HitArea> HitAreas { get; set; }
 
         public Dictionary<string, double> Layout { get; set; }
 
