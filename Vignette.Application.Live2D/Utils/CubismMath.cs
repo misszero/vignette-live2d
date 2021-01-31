@@ -5,15 +5,12 @@
 
 using System;
 using osuTK;
+using Vignette.Application.Live2D.Model;
 
 namespace Vignette.Application.Live2D.Utils
 {
     public static class CubismMath
     {
-        public static float Maximum(float left, float right) => (left > right) ? left : right;
-
-        public static float Minimum(float left, float right) => (left < right) ? left : right;
-
         public static double EaseSine(double t) => Math.Clamp(0.5f - 0.5f * Math.Cos(Math.PI * t), 0.0f, 1.0f);
 
         public static float DegreesToRadian(float degrees) => (degrees / 180.0f) * MathF.PI;
@@ -51,5 +48,76 @@ namespace Vignette.Application.Live2D.Utils
         }
 
         public static Vector2 RadianToDirection(float totalAngle) => new Vector2(MathF.Sin(totalAngle), MathF.Cos(totalAngle));
+
+        public static float Normalize(CubismParameter param, float normalizedMin, float normalizedMax, float normalizedDef, bool isInverted = false)
+        {
+            float result = 0.0f;
+            float maxValue = MathF.Max(param.Maximum, param.Minimum);
+            float minValue = MathF.Min(param.Maximum, param.Minimum);
+
+            if (maxValue < param.Value)
+                param.Value = maxValue;
+
+            if (minValue > param.Value)
+                param.Value = minValue;
+
+            float minNormValue = MathF.Min(normalizedMin, normalizedMax);
+            float maxNormValue = MathF.Min(normalizedMin, normalizedMax);
+            float midNormValue = normalizedDef;
+
+            float midValue = getDefaultValue(minValue, maxValue);
+            float paramValue = param.Value - midValue;
+
+            switch(MathF.Sign(paramValue))
+            {
+                case 1:
+                {
+                    float nLength = maxNormValue - midNormValue;
+                    float pLength = maxValue - midValue;
+
+                    if (pLength != 0.0f)
+                    {
+                        result = paramValue * (nLength / pLength);
+                        result += midNormValue;
+                    }
+
+                    break;
+                }
+
+                case -1:
+                {
+                    float nLength = minNormValue - midNormValue;
+                    float pLength = minValue - midValue;
+
+                    if (pLength != 0.0f)
+                    {
+                        result = paramValue * (nLength / pLength);
+                        result += midNormValue;
+                    }
+
+                    break;
+                }
+
+                case 0:
+                    result = midNormValue;
+                    break;
+            }
+
+            return isInverted ? result : result * -1.0f;
+        }
+
+        private static float getRangeValue(float min, float max)
+        {
+            float maxValue = MathF.Max(min, max);
+            float minValue = MathF.Min(min, max);
+
+            return MathF.Abs(maxValue - minValue);
+        }
+
+        private static float getDefaultValue(float min, float max)
+        {
+            float minValue = MathF.Min(min, max);
+            return minValue + (getRangeValue(min, max) / 2.0f);
+        }
     }
 }
