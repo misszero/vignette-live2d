@@ -1,5 +1,5 @@
-﻿// Copyright (c) Vignette Project.
-// Licensed under MIT. Please see LICENSE for more details.
+﻿// Copyright 2020 - 2021 Vignette Project
+// Licensed under MIT. See LICENSE for details.
 // This software implements Live2D. Copyright (c) Live2D Inc. All Rights Reserved.
 // License for Live2D can be found here: http://live2d.com/eula/live2d-open-software-license-agreement_en.html
 
@@ -9,18 +9,22 @@ namespace Vignette.Application.Live2D.Physics
 {
     public class PhysicsRig
     {
-        public int SubRigCount { get; set; }
+        public PhysicsSubRig[] SubRigs { get; set; }
 
-        public PhysicsSubRig[] Settings { get; set; }
+        public Vector2 Gravity { get; set; } = new Vector2(0, -1.0f);
 
-        public PhysicsInput[] Inputs { get; set; }
+        public Vector2 Wind { get; set; } = Vector2.Zero;
 
-        public PhysicsOutput[] Outputs { get; set; }
+        public void Initialize()
+        {
+            for (int i = 0; i < SubRigs.Length; ++i)
+                SubRigs[i].Initialize();
+        }
 
-        public PhysicsParticle[] Particles { get; set; }
-
-        public Vector2 Gravity { get; set; }
-
-        public Vector2 Wind { get; set; }
+        public void Update(float delta)
+        {
+            for (int i = 0; i < SubRigs.Length; ++i)
+                SubRigs[i].Update(delta);
+        }
     }
 }
