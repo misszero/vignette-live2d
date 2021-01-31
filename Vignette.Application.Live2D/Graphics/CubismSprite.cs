@@ -20,27 +20,7 @@ namespace Vignette.Application.Live2D.Graphics
     {
         public bool UsePremultipliedAlpha { get; set; }
 
-        public float ScaleAdjust { get; set; } = 1.0f;
-
-        public float PositionXAdjust
-        {
-            get => positionAdjust.X;
-            set => positionAdjust.X = value;
-        }
-
-        public float PositionYAdjust
-        {
-            get => positionAdjust.Y;
-            set => positionAdjust.Y = value;
-        }
-
-        public Vector2 PositionAdjust
-        {
-            get => positionAdjust;
-            set => positionAdjust = value;
-        }
-
-        private Vector2 positionAdjust;
+        public CanvasOptions Canvas { get; set; } = new CanvasOptions();
 
         private readonly CubismModel model;
 

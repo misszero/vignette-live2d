@@ -29,16 +29,32 @@ namespace Vignette.Application.Live2D.Graphics
 
             if (renderer != null)
             {
+                float x = Source.Canvas.RelativePositionAxes.HasFlag(Axes.X)
+                    ? Source.Canvas.X * Source.Width
+                    : Source.Canvas.X;
+
+                float y = Source.Canvas.RelativePositionAxes.HasFlag(Axes.Y)
+                    ? Source.Canvas.Y * Source.Height
+                    : Source.Canvas.Y;
+
+                float canvasWidth = Source.Width / 2 * Source.Canvas.Scale;
+                float canvasHeight = Source.Height / 2 * Source.Canvas.Scale;
+
                 var matrix = Matrix4.Identity;
-                matrix[0, 0] = Source.ScaleAdjust;
-                matrix[1, 1] = Source.ScaleAdjust * (Source.Width / Source.Height);
-                matrix[3, 0] = Source.PositionXAdjust / Source.DrawWidth;
-                matrix[3, 1] = -Source.PositionYAdjust / Source.DrawHeight;
+                matrix[0, 0] = Source.Canvas.Scale;
+                matrix[1, 1] = Source.Canvas.Scale * (Source.Width / Source.Height);
+                matrix[3, 0] = map(x * Source.Canvas.Scale, -canvasWidth, canvasWidth, -1.0f, 1.0f);
+                matrix[3, 1] = map(-y * Source.Canvas.Scale, -canvasHeight, canvasHeight, -1.0f, 1.0f);
 
                 renderer.MvpMatrix = matrix;
                 renderer.Color = Source.Colour;
                 renderer.Draw();
             }
+        }
+
+        private static float map(float value, float fromSource, float toSource, float fromTarget, float toTarget)
+        {
+            return (value - fromSource) / (toSource - fromSource) * (toTarget - fromTarget) + fromTarget;
         }
 
         protected override void Dispose(bool isDisposing)
