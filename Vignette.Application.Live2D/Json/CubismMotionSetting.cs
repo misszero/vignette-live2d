@@ -37,9 +37,9 @@ namespace Vignette.Application.Live2D.Json
 
             public int TotalUserDataSize { get; set; }
 
-            public float FadeInTime { get; set; }
+            public double FadeInTime { get; set; } = double.NaN;
 
-            public float FadeOutTime { get; set; }
+            public double FadeOutTime { get; set; } = double.NaN;
         }
 
         public class Curve
@@ -50,9 +50,9 @@ namespace Vignette.Application.Live2D.Json
 
             public List<float> Segments { get; set; }
 
-            public float FadeInTime { get; set; }
+            public double FadeInTime { get; set; } = double.NaN;
 
-            public float FadeOutTime { get; set; }
+            public double FadeOutTime { get; set; } = double.NaN;
         }
 
         public class Userdata

@@ -20,9 +20,9 @@ namespace Vignette.Application.Live2D.Motion
 
         public double GlobalFadeOutSeconds { get; set; }
 
-        public double Duration { get; private set; }
+        public double Duration { get; private set; } = double.PositiveInfinity;
 
-        public double Weight { get; set; }
+        public double Weight { get; set; } = 1.0;
 
         public bool LoopFading { get; set; }
 
@@ -41,11 +41,17 @@ namespace Vignette.Application.Live2D.Motion
             Duration = setting.Meta.Duration;
             CanLoop = setting.Meta.Loop;
 
-            if (GlobalFadeInSeconds <= 0)
-                GlobalFadeInSeconds = modelMotionSetting?.FadeInTime ?? setting.Meta.FadeInTime;
+            GlobalFadeInSeconds = double.IsNaN(modelMotionSetting?.FadeInTime ?? double.NaN)
+                ? double.IsNaN(setting.Meta.FadeInTime)
+                    ? 0.0
+                    : setting.Meta.FadeInTime
+                : modelMotionSetting.FadeInTime;
 
-            if (GlobalFadeOutSeconds <= 0)
-                GlobalFadeOutSeconds = modelMotionSetting?.FadeOutTime ?? setting.Meta.FadeOutTime;
+            GlobalFadeOutSeconds = double.IsNaN(modelMotionSetting?.FadeOutTime ?? double.NaN)
+                ? double.IsNaN(setting.Meta.FadeOutTime)
+                    ? 0.0
+                    : setting.Meta.FadeOutTime
+                : modelMotionSetting.FadeOutTime;
 
             var curves = new List<Curve>();
 
@@ -321,7 +327,7 @@ namespace Vignette.Application.Live2D.Motion
                 : CubismMath.EaseSine(time % duration / fadeTime);
         }
 
-        private double calculateFadeOutWeight(double time, double duration, double fadeTime, bool loop, bool loopFading)
+        private static double calculateFadeOutWeight(double time, double duration, double fadeTime, bool loop, bool loopFading)
         {
             if (fadeTime <= 0)
                 return 1;
