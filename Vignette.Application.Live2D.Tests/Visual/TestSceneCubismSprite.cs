@@ -16,6 +16,8 @@ namespace Vignette.Application.Live2D.Tests.Visual
 {
     public abstract class TestSceneCubismSprite : TestScene
     {
+        protected virtual float SpriteSize => 512;
+
         protected CubismSprite Sprite;
 
         protected CubismModel Model;
@@ -31,7 +33,7 @@ namespace Vignette.Application.Live2D.Tests.Visual
 
             Model = new CubismModel(moc);
             Sprite = CreateSprite(Model, textures);
-            Sprite.Size = new Vector2(512);
+            Sprite.Size = new Vector2(SpriteSize);
             Sprite.Anchor = Anchor.Centre;
             Sprite.Origin = Anchor.Centre;
             Add(Sprite);

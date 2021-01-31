@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
-using osuTK;
 using Vignette.Application.Live2D.Graphics;
 using Vignette.Application.Live2D.Model;
 using Vignette.Application.Live2D.Motion.Effect;
@@ -36,8 +35,9 @@ namespace Vignette.Application.Live2D.Tests.Visual
         {
             Canvas = new CanvasOptions
             {
-                Y = 0.5f,
+                Y = 1.75f,
                 Scale = 7.5f,
+                RelativePositionAxes = Axes.Y,
             }
         };
 
