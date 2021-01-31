@@ -21,7 +21,7 @@ namespace Vignette.Application.Live2D.Physics
                 SubRigs[i].Initialize();
         }
 
-        public void Update(float delta)
+        public void Update(double delta)
         {
             for (int i = 0; i < SubRigs.Length; ++i)
                 SubRigs[i].Update(delta);

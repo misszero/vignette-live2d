@@ -51,7 +51,7 @@ namespace Vignette.Application.Live2D.Physics
             physicsRig.Initialize();
         }
 
-        public void Update(float delta)
+        public void Update(double delta)
         {
             physicsRig.Update(delta);
         }

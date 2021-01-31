@@ -48,7 +48,7 @@ namespace Vignette.Application.Live2D.Physics
                 Output[i].InitializeGetter();
         }
 
-        public void Update(float delta)
+        public void Update(double delta)
         {
             float totalAngle = 0.0f;
             var totalTranslation = Vector2.Zero;
@@ -107,7 +107,7 @@ namespace Vignette.Application.Live2D.Physics
             float totalAngle,
             Vector2 wind,
             float thresholdValue,
-            float delta
+            double delta
         )
         {
             strand[0].Position = totalTranslation;
@@ -121,7 +121,7 @@ namespace Vignette.Application.Live2D.Physics
                 strand[i].LastPosition = strand[i].Position;
 
                 // NOTE: This expects 30 FPS. We might want to get the FPS from the drawable clock if things get messy.
-                float delay = strand[i].Delay * delta * 30.0f;
+                float delay = strand[i].Delay * (float)delta * 30.0f;
 
                 var direction = strand[i].Position - strand[i - 1].Position;
 
