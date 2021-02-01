@@ -249,7 +249,7 @@ namespace Vignette.Application.Live2D.Motion
             curve.FadeOutTime = item.FadeOutTime;
 
             var segments = item.Segments;
-            int segmentCount = item.Segments.Count();
+            int segmentCount = item.Segments.Count;
 
             var last = new ControlPoint(segments[0], segments[1]);
             var segmentList = new List<Segment>();
