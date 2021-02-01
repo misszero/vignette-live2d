@@ -8,6 +8,11 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <PackageId>Vignette.Application.Live2D</PackageId>
+    <PackageTags>live2d;cubism;osu;osu!framework;vignette</PackageTags>
+  </PropertyGroup>
+
   <ItemGroup>
     <EmbeddedResource Include="Resources\**\*" />
   </ItemGroup>
@@ -20,10 +25,6 @@
     <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
       <_Parameter1>$(AssemblyName).Tests</_Parameter1>
     </AssemblyAttribute>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Graphics\Visualization\" />
   </ItemGroup>
 
 </Project>

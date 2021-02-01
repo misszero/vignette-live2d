@@ -1,0 +1,39 @@
+on: workflow_dispatch
+name: Pack
+jobs:
+  pack:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 5.0.x
+
+      - id: get-version
+        name: Set Version
+        shell: pwsh
+        run: ./.github/workflows/get-version.ps1 ${{ github.repository }}
+      
+      - name: Pack
+        run: dotnet pack Vignette.Application.Live2D/Vignette.Application.Live2D.csproj --nologo -o output -c Release -p:PackageVersion=${{ steps.get-version.outputs.version }}
+      
+      - id: create-release
+        name: Create Release
+        uses: actions/create-release@v1
+        with:
+          body: This is a tagged release.
+          tag_name: ${{ steps.get-version.outputs.version }}
+          release_name: ${{ steps.get-version.outputs.version }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Attach release artifact
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create-release.outputs.upload_url }}
+          asset_path: ${{ github.workspace }}/output/Vignette.Application.Live2D.${{ steps.get-version.outputs.version }}.nupkg
+          asset_name: Vignette.Application.Live2D.${{ steps.get-version.outputs.version }}.nupkg
+          asset_content_type: application/zip
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
