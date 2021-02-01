@@ -37,3 +37,6 @@ jobs:
           asset_content_type: application/zip
         env:
           GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Publish to GitHub Packages
+        run: dotnet nuget push ${{ github.workspace }}/output/Vignette.Application.Live2D.${{ steps.get-version.outputs.version }}.nupkg --source https://nuget.pkg.github.com/vignette-project/index.json --api-key ${{ github.token }}
