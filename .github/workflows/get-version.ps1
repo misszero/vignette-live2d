@@ -7,6 +7,6 @@ $coming = @((Get-Date).Year, [int]::Parse((Get-Date).Month.ToString() + (Get-Dat
 $match = $latest | ForEach-Object { $_ -eq $coming[[array]::IndexOf($latest, $_)] }
 $major = If ($match[0]) { $latest[0] } Else { $coming[0] }
 $minor = If ($match[1]) { $latest[1] } Else { $coming[1] }
-$patch = If ($match[0] -and $match[1] -and $match[2]) { $latest[2] + 1 } Else { $coming[2] }
+$patch = If ($match[0] -and $match[1]) { $latest[2] + 1 } Else { 0 }
 
 Write-Host "::set-output name=version::$($major).$($minor).$($patch)"
