@@ -9,9 +9,6 @@ jobs:
       - uses: actions/setup-dotnet@v1
         with:
           dotnet-version: 5.0.x
-          source-url: https://nuget.pkg.github.com/vignette-project/index.json
-        env:
-          NUGET_AUTH_TOKEN: ${{ github.token }}
 
       - id: get-version
         name: Set Version
@@ -41,5 +38,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
-      - name: Publish to GitHub Packages
-        run: dotnet nuget push ${{ github.workspace }}/output/Vignette.Application.Live2D.${{ steps.get-version.outputs.version }}.nupkg --skip-duplicate
+      - name: Publish
+        run: |
+          dotnet nuget add source https://nuget.pkg.github.com/vignette-project/index.json -n github -u vignette-project -p ${{ secrets.GITHUB_TOKEN }}
+          dotnet nuget push ${{ github.workspace }}/output/Vignette.Application.Live2D.${{ steps.get-version.outputs.version }}.nupkg --skip-duplicate --source github
