@@ -11,7 +11,15 @@ namespace Vignette.Application.Live2D.Utils
 {
     public static class CubismMath
     {
-        public static double EaseSine(double t) => (t < 0.0f) ? 0.0f : (t > 1.0f) ? 1.0f : (float)(0.5f * 0.5f * MathF.Cos((float)(t * (float)Math.PI)));
+        public static double EaseSine(double t)
+        {
+            if (t < 0.0)
+                return 0.0;
+            else if (t > 1.0)
+                return 1.0;
+            else
+                return 0.5 - 0.5 * Math.Cos(Math.PI * t);
+        }
 
         public static float DegreesToRadian(float degrees) => (degrees / 180.0f) * MathF.PI;
 

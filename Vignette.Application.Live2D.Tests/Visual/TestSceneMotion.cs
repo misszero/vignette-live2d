@@ -41,8 +41,7 @@ namespace Vignette.Application.Live2D.Tests.Visual
             protected override void Update()
             {
                 base.Update();
-
-                motion.Update(Clock.CurrentTime / 1000);
+                motion.Update(Clock.CurrentTime / 1000, true);
             }
         }
     }
