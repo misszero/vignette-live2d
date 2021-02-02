@@ -16,7 +16,7 @@ namespace Vignette.Application.Live2D.Tests.Visual
 {
     public abstract class TestSceneCubismSprite : TestScene
     {
-        protected virtual float SpriteSize => 512;
+        protected virtual float SpriteSize => 1024.0f;
 
         protected CubismSprite Sprite;
 
