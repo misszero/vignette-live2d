@@ -1,0 +1,32 @@
+{
+    "psi-header.changes-tracking": {
+        "autoHeader": "manualSave"
+    },
+    "psi-header.variables": [
+        ["licenseYearFrom", "2020"],
+        ["licenseYearTo", "2021"],
+        ["licenseType", "MIT"]
+    ],
+    "psi-header.lang-config": [
+        {
+            "language": "csharp",
+            "begin": "",
+            "prefix": "// ",
+            "end": "",
+            "blankLinesAfter": 1
+        }
+    ],
+    "psi-header.templates": [
+        {
+            "language": "csharp",
+            "template": [
+                "Copyright <<licenseYearFrom>> - <<licenseYearTo>> Vignette Project",
+                "Licensed under <<licenseType>>. See LICENSE for details.",
+                "This software implements Live2D. Copyright (c) Live2D Inc. All Rights Reserved.",
+                "License for Live2D can be found here: http://live2d.com/eula/live2d-open-software-license-agreement_en.html"
+            ]
+        }
+    ],
+    "editor.defaultFormatter": "ms-dotnettools.csharp",
+    "editor.formatOnType": true
+}
