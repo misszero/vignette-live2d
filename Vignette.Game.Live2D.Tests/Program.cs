@@ -4,7 +4,9 @@
 // License for Live2D can be found here: http://live2d.com/eula/live2d-open-software-license-agreement_en.html
 
 using System;
+using System.Linq;
 using osu.Framework;
+using osu.Framework.Input.Handlers.Mouse;
 using osu.Framework.IO.Stores;
 using osu.Framework.Logging;
 using osu.Framework.Testing;
@@ -38,6 +40,10 @@ namespace Vignette.Game.Live2D.Tests
                 base.LoadComplete();
 
                 Resources.AddStore(new NamespacedResourceStore<byte[]>(new DllResourceStore(CubismResources.ResourceAssembly), "Resources"));
+
+                var mouse = (MouseHandler)Host.AvailableInputHandlers.Single(i => i is MouseHandler);
+                mouse.UseRelativeMode.Value = false;
+
                 Add(new TestBrowser("Vignette"));
             }
         }

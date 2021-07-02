@@ -4,9 +4,9 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="ppy.osu.Framework" Version="2021.524.0" PrivateAssets="All" />
+    <EmbeddedResource Include="Resources\Shaders\**\*" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Resources\Shaders\**\*" />
+    <PackageReference Include="ppy.osu.Framework" Version="2021.702.0" />
   </ItemGroup>
 </Project>

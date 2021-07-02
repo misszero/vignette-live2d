@@ -10,13 +10,15 @@
     <PackageReference Include="NUnit3TestAdapter" Version="3.17.0" />
     <PackageReference Include="NunitXml.TestLogger" Version="3.0.97" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.9.4" />
-    <PackageReference Include="ppy.osu.Framework" Version="2021.524.0"/>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Vignette.Game.Live2D\Vignette.Game.Live2D.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Resources\**\*"/>
+    <EmbeddedResource Include="Resources\**\*" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Visual\Model\TestSceneCubismDrawable.cs" />
   </ItemGroup>
 
 </Project>

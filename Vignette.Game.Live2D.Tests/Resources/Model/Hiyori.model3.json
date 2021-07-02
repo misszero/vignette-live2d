@@ -3,8 +3,8 @@
 	"FileReferences": {
 		"Moc": "Hiyori.moc3",
 		"Textures": [
-			"Hiyori.2048/texture_00.png",
-			"Hiyori.2048/texture_01.png"
+			"textures/texture_00.png",
+			"textures/texture_01.png"
 		],
 		"Physics": "Hiyori.physics3.json",
 		"Pose": "Hiyori.pose3.json",

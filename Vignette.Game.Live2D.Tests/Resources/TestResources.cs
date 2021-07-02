@@ -10,10 +10,8 @@ namespace Vignette.Game.Live2D.Tests.Resources
 {
     public static class TestResources
     {
-        public static DllResourceStore GetStore() => new DllResourceStore(typeof(TestResources).Assembly);
+        public static IResourceStore<byte[]> GetResourceStore() => new NamespacedResourceStore<byte[]>(new DllResourceStore(typeof(TestResources).Assembly), "Resources");
 
-        public static Stream GetStream(string name) => GetStore().GetStream($"Resources/{name}");
-
-        public static Stream GetModelResource(string name) => GetStream($"Model/{name}");
+        public static IResourceStore<byte[]> GetModelResourceStore() => new NamespacedResourceStore<byte[]>(GetResourceStore(), "Model");
     }
 }

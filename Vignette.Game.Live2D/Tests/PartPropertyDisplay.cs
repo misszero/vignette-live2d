@@ -3,18 +3,11 @@
 // This software implements Live2D. Copyright (c) Live2D Inc. All Rights Reserved.
 // License for Live2D can be found here: http://live2d.com/eula/live2d-open-software-license-agreement_en.html
 
-using System;
+using osu.Framework.Graphics.Containers;
 
-namespace Vignette.Game.Live2D
+namespace Vignette.Game.Live2D.Tests
 {
-    [Flags]
-    public enum CubismDynamicFlags : byte
+    public class PartPropertyDisplay : Container
     {
-        Visible = 0x1,
-        VisibilityChanged = 0x2,
-        OpacityChanged = 0x4,
-        DrawOrderChanged = 0x8,
-        RenderOrderChanged = 0x10,
-        VertexPositionsChanged = 0x20,
     }
 }

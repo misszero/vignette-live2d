@@ -33,7 +33,7 @@ namespace Vignette.Game.Live2D.Graphics
             ID = id;
             Minimum = min;
             Maximum = max;
-            Default = def;
+            Default = Value = def;
         }
     }
 }

@@ -25,6 +25,8 @@ namespace Vignette.Game.Live2D.Physics
 
         public Vector2 LastGravity { get; set; }
 
+        public Vector2 Force { get; set; }
+
         public Vector2 Velocity { get; set; }
     }
 }

@@ -6,13 +6,13 @@
 using System.Collections.Generic;
 using osu.Framework.Graphics.Shaders;
 
-namespace Vignette.Game.Live2D.Graphics.Shaders
+namespace Vignette.Game.Live2D.Graphics
 {
-    public class CubismShaders
+    internal class CubismShaders
     {
         private readonly List<IShader> shaders = new List<IShader>();
 
-        public IShader Setup => shaders[0];
+        public IShader SetupMask => shaders[0];
 
         public CubismShaders(ShaderManager manager)
         {

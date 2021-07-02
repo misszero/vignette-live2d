@@ -5,8 +5,19 @@
 
 namespace Vignette.Game.Live2D.Physics
 {
-    public class CubismPhysicsNormalization
+    public struct CubismPhysicsNormalizationTuplet
     {
+        public float Maximum { get; set; }
 
+        public float Minimum { get; set; }
+
+        public float Default { get; set; }
+    }
+
+    public struct CubismPhysicsNormalization
+    {
+        public CubismPhysicsNormalizationTuplet Position { get; set; }
+
+        public CubismPhysicsNormalizationTuplet Angle { get; set; }
     }
 }

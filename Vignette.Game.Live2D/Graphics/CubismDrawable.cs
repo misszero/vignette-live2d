@@ -4,188 +4,128 @@
 // License for Live2D can be found here: http://live2d.com/eula/live2d-open-software-license-agreement_en.html
 
 using System;
-using System.Collections.Generic;
-using osu.Framework.Allocation;
-using osu.Framework.Caching;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Primitives;
-using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
 using osuTK;
-using Vignette.Game.Live2D.Graphics.Shaders;
 
 namespace Vignette.Game.Live2D.Graphics
 {
     /// <summary>
-    /// A drawable that draws a single Live2D drawable.
+    /// A drawable that represents a single mesh.
     /// </summary>
-    public class CubismDrawable : Drawable, ITexturedShaderDrawable, ICubismId
+    public class CubismDrawable : ICubismId
     {
-        public CubismShaders Shaders { get; internal set; }
+        /// <summary>
+        /// The vertex positions of the drawable used in drawing.
+        /// </summary>
+        public Vector2[] Positions { get; internal set; }
 
-        public Action<CubismDrawable, int> RenderOrderChanged;
+        /// <summary>
+        /// The coordinates of the drawable used in drawing.
+        /// </summary>
+        public Vector2[] TexturePositions { get; init; }
 
-        public CubismDrawable()
-        {
-            RelativeSizeAxes = Axes.Both;
-        }
+        /// <summary>
+        /// The indices of the drawable used in drawing.
+        /// </summary>
+        public short[] Indices { get; init; }
 
-        [BackgroundDependencyLoader]
-        private void load(ShaderManager shaderManager)
-        {
-            RoundedTextureShader = shaderManager.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
-            TextureShader = shaderManager.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
-            Shaders = new CubismShaders(shaderManager);
-        }
+        /// <summary>
+        /// The render order of this drawable.
+        /// </summary>
+        public int RenderOrder { get; internal set; }
 
-        #region Properties
+        /// <summary>
+        /// The texture of this drawable.
+        /// </summary>
+        public Texture Texture { get; internal set; }
 
-        private readonly List<Vector2> vertexPositions = new List<Vector2>();
-
-        public IEnumerable<Vector2> VertexPositions
-        {
-            get => vertexPositions;
-            internal set
-            {
-                vertexPositions.Clear();
-                vertexPositions.AddRange(value);
-
-                vertexBoundsCache.Invalidate();
-
-                Invalidate(Invalidation.DrawNode);
-            }
-        }
-
-        private readonly List<Vector2> texturePositions = new List<Vector2>();
-
-        public IEnumerable<Vector2> TexturePositions
-        {
-            get => texturePositions;
-            internal set
-            {
-                if (texturePositions.Count > 0)
-                    throw new InvalidOperationException($"{nameof(TexturePositions)} cannot be modified after being initialized.");
-
-                texturePositions.AddRange(value);
-            }
-        }
-
-        private readonly List<short> indices = new List<short>();
-
-        public IEnumerable<short> Indices
-        {
-            get => indices;
-            internal set
-            {
-                if (indices.Count > 0)
-                    throw new InvalidOperationException($"{nameof(Indices)} cannot be modified after being initialized.");
-
-                indices.AddRange(value);
-            }
-        }
-
-        private readonly List<int> masks = new List<int>();
-
-        public IEnumerable<int> Masks
-        {
-            get => masks;
-            internal set
-            {
-                if (masks.Count > 0)
-                    throw new InvalidOperationException($"{nameof(Masks)} cannot be modified after being initialized.");
-
-                masks.AddRange(value);
-            }
-        }
-
-        private int renderOrder;
-
-        public int RenderOrder
-        {
-            get => renderOrder;
-            internal set
-            {
-                if (renderOrder == value)
-                    return;
-
-                renderOrder = value;
-                RenderOrderChanged?.Invoke(this, renderOrder);
-            }
-        }
-
-        private Texture texture;
-
-        public Texture Texture
-        {
-            get => texture;
-            internal set
-            {
-                if (texture != null)
-                    throw new InvalidOperationException($"{nameof(Texture)} cannot be modified after being initialized.");
-
-                texture = value;
-            }
-        }
-
-        private readonly Cached<RectangleF> vertexBoundsCache = new Cached<RectangleF>();
-
+        /// <summary>
+        /// The rectangular bounds of the drawable.
+        /// </summary>
         public RectangleF VertexBounds
         {
             get
             {
-                if (vertexBoundsCache.IsValid)
-                    return vertexBoundsCache.Value;
+                if (Positions == null || Positions.Length <= 0)
+                    return RectangleF.Empty;
 
-                if (vertexPositions.Count > 0)
+                float minX = 0;
+                float minY = 0;
+                float maxX = 0;
+                float maxY = 0;
+
+                foreach (var v in Positions)
                 {
-                    float minX = 0;
-                    float minY = 0;
-                    float maxX = 0;
-                    float maxY = 0;
-
-                    foreach (var v in vertexPositions)
-                    {
-                        minX = Math.Min(minX, v.X);
-                        minY = Math.Min(minY, v.Y);
-                        maxX = Math.Max(maxX, v.X);
-                        maxY = Math.Max(maxY, v.Y);
-                    }
-
-                    return vertexBoundsCache.Value = new RectangleF(minX, minY, maxX - minX, maxY - minY);
+                    minX = Math.Min(minX, v.X);
+                    minY = Math.Min(minY, v.Y);
+                    maxX = Math.Max(maxX, v.X);
+                    maxY = Math.Max(maxY, v.Y);
                 }
 
-                return vertexBoundsCache.Value = RectangleF.Empty;
+                return new RectangleF(minX, minY, maxX - minX, maxY - minY);
             }
         }
 
-        public bool IsDoubleSided { get; set; }
+        /// <summary>
+        /// Whether this drawable is double-sided.
+        /// </summary>
+        public bool IsDoubleSided { get; internal set; }
 
-        public bool IsInvertedMask { get; set; }
+        /// <summary>
+        /// Whether this drawable uses an inverted mask.
+        /// </summary>
+        public bool IsInvertedMask { get; internal set; }
 
-        #endregion
+        /// <summary>
+        /// The blending parameters used in drawing this drawable.
+        /// </summary>
+        public BlendingParameters Blending { get; internal set; }
 
-        #region ICubismId
+        /// <summary>
+        /// The alpha component of this drawable.
+        /// </summary>
+        public float Alpha
+        {
+            get => Colour.A;
+            set => Colour = Colour.Opacity(value);
+        }
 
-        string ICubismId.Name => Name;
+        private Colour4 colour = Colour4.White;
+
+        internal event Action ColourChanged;
+
+        /// <summary>
+        /// The colour of this drawable.
+        /// </summary>
+        public Colour4 Colour
+        {
+            get => colour;
+            set
+            {
+                if (Colour.Equals(value))
+                    return;
+
+                // Used to check whether it is necessary to invoke the event by ugnoring the alpha value
+                // as the cubism framework handles invoking invalidations on alpha change.
+                var prev = colour.Opacity(1);
+                var next = value.Opacity(1);
+
+                colour = value;
+
+                if (!prev.Equals(next))
+                    ColourChanged?.Invoke();
+            }
+        }
+
+        /// <summary>
+        /// The context used to mask this drawable.
+        /// </summary>
+        internal MaskingContext MaskingContext { get; set; }
+
+        public string Name { get; set; }
 
         public int ID { get; set; }
-
-        #endregion
-
-        #region Rendering
-
-        public IShader TextureShader { get; private set; }
-
-        public IShader RoundedTextureShader { get; private set; }
-
-        protected override DrawNode CreateDrawNode() => new CubismDrawableDrawNode(this);
-
-        #endregion
-
-        protected override void Dispose(bool isDisposing)
-        {
-            RenderOrderChanged = null;
-            base.Dispose(isDisposing);
-        }
     }
 }
