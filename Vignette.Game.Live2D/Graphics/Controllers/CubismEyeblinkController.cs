@@ -3,30 +3,60 @@
 // This software implements Live2D. Copyright (c) Live2D Inc. All Rights Reserved.
 // License for Live2D can be found here: http://live2d.com/eula/live2d-open-software-license-agreement_en.html
 
+using osu.Framework.Allocation;
 using osu.Framework.Utils;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace Vignette.Game.Live2D.Graphics.Controllers
 {
+    /// <summary>
+    /// A controller that allows the <see cref="CubismModel"/> to perform eye blinking.
+    /// </summary>
     public class CubismEyeblinkController : CubismController
     {
+        /// <summary>
+        /// Duration between eyeblinks.
+        /// </summary>
         public double BlinkInterval { get; set; } = 2.0;
 
+        /// <summary>
+        /// Duration on how long the eyes should be closed.
+        /// </summary>
         public double ClosedDuration { get; set; } = 0.15;
 
+        /// <summary>
+        /// Duration on the closing motion of the eyes.
+        /// </summary>
         public double ClosingDuration { get; set; } = 0.1;
 
+        /// <summary>
+        /// Duration on the opening motion of the eyes.
+        /// </summary>
         public double OpeningDuration { get; set; } = 0.05;
 
         private EyeState state;
         private double nextBlinkTime;
         private double currentStateStartTime;
-        private List<CubismParameter> parameters;
+        private IEnumerable<CubismParameter> parameters;
 
-        public CubismEyeblinkController(IEnumerable<CubismParameter> parameters)
+        /// <summary>
+        /// Create a new eyeblink controller with the option to predefine parameters.
+        /// </summary>
+        /// <param name="parameters">The parameters to apply the eyeblink motion to.</param>
+        public CubismEyeblinkController(params CubismParameter[] parameters)
         {
-            this.parameters = parameters.ToList();
+            this.parameters = parameters;
+        }
+
+        [BackgroundDependencyLoader]
+        private void load()
+        {
+            if (parameters == null)
+            {
+                var eyeblinkGroup = Model.Settings.Groups.FirstOrDefault(g => g.Name == "EyeBlink");
+                parameters = Model.Parameters.Where(p => eyeblinkGroup.Ids.Contains(p.Name));
+            }
         }
 
         protected override void Update()
@@ -108,13 +138,9 @@ namespace Vignette.Game.Live2D.Graphics.Controllers
         private enum EyeState
         {
             Initial,
-
             Open,
-
             Opening,
-
             Closed,
-
             Closing,
         }
     }

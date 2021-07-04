@@ -3,44 +3,62 @@
 // This software implements Live2D. Copyright (c) Live2D Inc. All Rights Reserved.
 // License for Live2D can be found here: http://live2d.com/eula/live2d-open-software-license-agreement_en.html
 
-using osu.Framework.Allocation;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace Vignette.Game.Live2D.Graphics.Controllers
 {
+    /// <summary>
+    /// A controller that provides breathing motion to the <see cref="CubismModel"/>.
+    /// </summary>
     public class CubismBreathController : CubismController
     {
-        private readonly List<(CubismParameter, float, float, float, float)> settings = new List<(CubismParameter, float, float, float, float)>();
+        private readonly IEnumerable<CubismBreathParameter> settings = new List<CubismBreathParameter>();
 
-        [BackgroundDependencyLoader]
-        private void load()
+        public CubismBreathController(params CubismBreathParameter[] parameters)
         {
-            SetParameter(Model.Parameters.FirstOrDefault(p => p.Name == "ParamAngleX"), 0.0f, 15.0f, 6.5345f, 0.5f);
-            SetParameter(Model.Parameters.FirstOrDefault(p => p.Name == "ParamAngleY"), 0.0f, 8.0f, 3.5345f, 0.5f);
-            SetParameter(Model.Parameters.FirstOrDefault(p => p.Name == "ParamAngleZ"), 0.0f, 10.0f, 5.5345f, 0.5f);
-            SetParameter(Model.Parameters.FirstOrDefault(p => p.Name == "ParamBodyAngleX"), 0.0f, 4.0f, 15.5345f, 0.5f);
-            SetParameter(Model.Parameters.FirstOrDefault(p => p.Name == "ParamBreath"), 0.5f, 0.5f, 3.2345f, 0.5f);
-        }
-
-        public void SetParameter(CubismParameter parameter, float offset, float peak, float cycle, float weight)
-        {
-            if (parameter == null)
-                return;
-
-            settings.Add((parameter, offset, peak, cycle, weight));
+            settings = (parameters != null || parameters.Length > 0) ? parameters : default_parameters;
         }
 
         protected override void Update()
         {
+            base.Update();
+
             float phase = (float)Clock.ElapsedFrameTime / 1000 * 2.0f * MathF.PI;
             foreach (var setting in settings)
             {
-                (CubismParameter p, float offset, float peak, float cycle, float weight) = setting;
-                float sin = MathF.Sin(phase / cycle);
-                p.Value += (offset + peak * sin) * weight;
+                var parameter = Model.Parameters.FirstOrDefault(p => p.Name == setting.Parameter);
+
+                if (parameter == null)
+                    return;
+
+                parameter.Value += (setting.Offset + setting.Peak * MathF.Sin(phase / setting.Cycle)) * setting.Weight;
             }
+        }
+
+        private static CubismBreathParameter[] default_parameters = new[] { new CubismBreathParameter("ParamBreath", 0.5f, 0.5f, 3.2345f, 0.5f) };
+    }
+
+    public struct CubismBreathParameter
+    {
+        public string Parameter { get; set; }
+
+        public float Offset { get; set; }
+
+        public float Peak { get; set; }
+
+        public float Cycle { get; set; }
+
+        public float Weight { get; set; }
+
+        public CubismBreathParameter(string parameterName, float offset, float peak, float cycle, float weight)
+        {
+            Parameter = parameterName;
+            Offset = offset;
+            Peak = peak;
+            Cycle = cycle;
+            Weight = weight;
         }
     }
 }

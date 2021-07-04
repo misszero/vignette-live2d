@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -7,6 +7,6 @@
     <EmbeddedResource Include="Resources\Shaders\**\*" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="ppy.osu.Framework" Version="2021.702.0" />
+    <ProjectReference Include="..\..\osu-framework\osu.Framework\osu.Framework.csproj" />
   </ItemGroup>
 </Project>

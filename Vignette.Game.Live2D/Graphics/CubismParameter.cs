@@ -7,12 +7,8 @@ using System;
 
 namespace Vignette.Game.Live2D.Graphics
 {
-    public class CubismParameter : ICubismId
+    public class CubismParameter : CubismId
     {
-        public string Name { get; private set; }
-
-        public int ID { get; private set; }
-
         public readonly float Minimum;
 
         public readonly float Maximum;
@@ -33,7 +29,7 @@ namespace Vignette.Game.Live2D.Graphics
             ID = id;
             Minimum = min;
             Maximum = max;
-            Default = Value = def;
+            Default = def;
         }
     }
 }

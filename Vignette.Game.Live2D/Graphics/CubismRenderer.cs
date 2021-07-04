@@ -22,6 +22,8 @@ namespace Vignette.Game.Live2D.Graphics
             this.model = model;
         }
 
+        public void Redraw() => Invalidate(Invalidation.DrawNode);
+
         [BackgroundDependencyLoader]
         private void load(ShaderManager shaders)
         {
@@ -39,6 +41,6 @@ namespace Vignette.Game.Live2D.Graphics
         public Vector2 FrameBufferScale { get; } = Vector2.One;
         public IShader TextureShader { get; private set; }
         public IShader RoundedTextureShader { get; private set; }
-        protected override DrawNode CreateDrawNode() => new BufferedDrawNode(this, new CubismRendererDrawNode2(this), sharedData);
+        protected override DrawNode CreateDrawNode() => new BufferedDrawNode(this, new CubismRendererDrawNode(this), sharedData);
     }
 }

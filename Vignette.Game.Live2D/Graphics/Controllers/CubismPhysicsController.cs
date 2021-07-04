@@ -9,6 +9,7 @@ using System;
 using System.Linq;
 using Vignette.Game.Live2D.IO.Serialization;
 using Vignette.Game.Live2D.Physics;
+using Vignette.Game.Live2D.Utils;
 
 namespace Vignette.Game.Live2D.Graphics.Controllers
 {
@@ -26,16 +27,16 @@ namespace Vignette.Game.Live2D.Graphics.Controllers
         public bool UseAngleCorrection { get; set; } = true;
 
         private CubismPhysicsRig physicsRig;
-        private readonly CubismPhysicsSetting setting;
-
-        public CubismPhysicsController(CubismPhysicsSetting setting)
-        {
-            this.setting = setting;
-        }
 
         [BackgroundDependencyLoader]
         private void load()
         {
+            if (string.IsNullOrEmpty(Model.Settings.FileReferences.Physics))
+                return;
+
+            using var stream = Model.Resources.GetStream(Model.Settings.FileReferences.Physics);
+            var setting = CubismUtils.ReadJsonSetting<CubismPhysicsSetting>(stream);
+
             physicsRig = new CubismPhysicsRig
             {
                 Gravity = setting.Meta.EffectiveForces.Gravity,

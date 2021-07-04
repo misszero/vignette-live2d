@@ -3,11 +3,12 @@
 // This software implements Live2D. Copyright (c) Live2D Inc. All Rights Reserved.
 // License for Live2D can be found here: http://live2d.com/eula/live2d-open-software-license-agreement_en.html
 
-using osu.Framework.Graphics.Containers;
-
-namespace Vignette.Game.Live2D.Tests
+namespace Vignette.Game.Live2D.Motion
 {
-    public class PartPropertyDisplay : Container
+    public enum CubismExpressionBlending
     {
+        Add,
+        Multiply,
+        Overwrite,
     }
 }

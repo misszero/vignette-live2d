@@ -4,18 +4,24 @@
 // License for Live2D can be found here: http://live2d.com/eula/live2d-open-software-license-agreement_en.html
 
 using System;
+using System.Runtime.InteropServices;
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.OpenGL;
+using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Textures;
 using osuTK;
+using osuTK.Graphics.ES30;
 
 namespace Vignette.Game.Live2D.Graphics
 {
     /// <summary>
-    /// A drawable that represents a single mesh.
+    /// A drawable that draws a single mesh.
     /// </summary>
-    public class CubismDrawable : ICubismId
+    public class CubismDrawable : CubismId, IDisposable
     {
+        #region Drawable Properties
+
         /// <summary>
         /// The vertex positions of the drawable used in drawing.
         /// </summary>
@@ -86,46 +92,87 @@ namespace Vignette.Game.Live2D.Graphics
         /// <summary>
         /// The alpha component of this drawable.
         /// </summary>
-        public float Alpha
-        {
-            get => Colour.A;
-            set => Colour = Colour.Opacity(value);
-        }
-
-        private Colour4 colour = Colour4.White;
-
-        internal event Action ColourChanged;
-
-        /// <summary>
-        /// The colour of this drawable.
-        /// </summary>
-        public Colour4 Colour
-        {
-            get => colour;
-            set
-            {
-                if (Colour.Equals(value))
-                    return;
-
-                // Used to check whether it is necessary to invoke the event by ugnoring the alpha value
-                // as the cubism framework handles invoking invalidations on alpha change.
-                var prev = colour.Opacity(1);
-                var next = value.Opacity(1);
-
-                colour = value;
-
-                if (!prev.Equals(next))
-                    ColourChanged?.Invoke();
-            }
-        }
+        public float Alpha { get; set; }
 
         /// <summary>
         /// The context used to mask this drawable.
         /// </summary>
         internal MaskingContext MaskingContext { get; set; }
 
-        public string Name { get; set; }
+        #endregion
 
-        public int ID { get; set; }
+        private int vaoID = -1;
+        private int iboID = -1;
+
+        protected void Initialise()
+        {
+            GL.GenBuffers(1, out iboID);
+            GLWrapper.BindBuffer(BufferTarget.ElementArrayBuffer, iboID);
+
+            GL.BufferData(BufferTarget.ElementArrayBuffer, (IntPtr)(Indices.Length * sizeof(short)), Indices, BufferUsageHint.StaticDraw);
+
+            GL.GenBuffers(1, out vaoID);
+
+            if (GLWrapper.BindBuffer(BufferTarget.ArrayBuffer, vaoID))
+                VertexUtils<MeshVertex>.Bind();
+
+            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(Positions.Length * VertexUtils<MeshVertex>.STRIDE), IntPtr.Zero, BufferUsageHint.DynamicDraw);
+        }
+
+        public void Draw()
+        {
+            if (vaoID == -1 && iboID == -1)
+                Initialise();
+
+            if (GLWrapper.BindBuffer(BufferTarget.ArrayBuffer, vaoID))
+                VertexUtils<MeshVertex>.Bind();
+
+            var vertices = new MeshVertex[Positions.Length];
+            for (int i = 0; i < Positions.Length; i++)
+            {
+                vertices[i] = new MeshVertex
+                {
+                    Position = Positions[i],
+                    TexturePosition = TexturePositions[i],
+                };
+            }
+
+            GL.BufferSubData(BufferTarget.ArrayBuffer, IntPtr.Zero, (IntPtr)(Positions.Length * VertexUtils<MeshVertex>.STRIDE), vertices);
+
+            GLWrapper.BindBuffer(BufferTarget.ElementArrayBuffer, iboID);
+            GL.DrawElements(PrimitiveType.Triangles, Indices.Length, DrawElementsType.UnsignedShort, IntPtr.Zero);
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct MeshVertex : IVertex
+        {
+            [VertexMember(2, VertexAttribPointerType.Float, false)]
+            public Vector2 Position;
+
+            [VertexMember(2, VertexAttribPointerType.Float, false)]
+            public Vector2 TexturePosition;
+        }
+
+        protected bool IsDisposed { get; private set; }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (IsDisposed)
+                return;
+
+            if (vaoID != -1 && iboID != -1)
+            {
+                GL.DeleteBuffers(2, new[] { vaoID, iboID });
+                vaoID = iboID = -1;
+            }
+
+            IsDisposed = true;
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
     }
 }

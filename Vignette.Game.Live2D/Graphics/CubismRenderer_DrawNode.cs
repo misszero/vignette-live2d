@@ -44,89 +44,86 @@ namespace Vignette.Game.Live2D.Graphics
             {
                 base.Draw(vertexAction);
 
-                // Ensure that OpenGL is in a state where we can perform drawing
-                using (prepareRenderer())
+                // Draw our masks to the frame buffers
+                foreach (var context in contexts)
                 {
-                    // Draw our masks to the frame buffer
-                    foreach (var context in contexts)
+                    using (bindFrameBuffer(context.FrameBuffer))
                     {
-                        using (bindFrameBuffer(context.FrameBuffer))
-                        {
-                            var shader = shaders.SetupMask;
-                            shader.Bind();
-
-                            shader.GetUniform<int>("s_texture0").Value = 0;
-                            shader.GetUniform<Vector4>("u_channelFlag").Value = new Vector4(1.0f, 0.0f, 0.0f, 0.0f);
-                            shader.GetUniform<Matrix4>("u_clipMatrix").Value = context.MaskMatrix;
-                            shader.GetUniform<Vector4>("u_baseColor").Value = new Vector4(-1.0f, -1.0f, 1.0f, 1.0f);
-
-                            foreach (var mask in context.Masks)
-                            {
-                                fixed (Vector2* pinnedPositions = mask.Positions)
-                                fixed (Vector2* pinnedTexturePositions = mask.TexturePositions)
-                                fixed (short* pinnedIndices = mask.Indices)
-                                {
-                                    GL.EnableVertexAttribArray(0);
-                                    GL.VertexAttribPointer(0, 2, VertexAttribPointerType.Float, false, sizeof(Vector2), (IntPtr)pinnedPositions);
-
-                                    GL.EnableVertexAttribArray(1);
-                                    GL.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, sizeof(Vector2), (IntPtr)pinnedTexturePositions);
-
-                                    GL.DrawElements(PrimitiveType.Triangles, mask.Indices.Length, DrawElementsType.UnsignedShort, (IntPtr)pinnedIndices);
-                                }
-                            }
-
-                            shader.Unbind();
-                        }
-                    }
-
-                    // Draw our drawables
-                    foreach (var drawable in drawables)
-                    {
-                        bool hasMask = drawable.MaskingContext != null;
-
-                        var shader = shaders.GetShaderFor(hasMask, drawable.IsInvertedMask, false);
-
+                        var shader = shaders.SetupMask;
                         shader.Bind();
 
-                        if (hasMask)
-                        {
-                            drawable.MaskingContext.FrameBuffer.Texture?.Bind(TextureUnit.Texture1);
-                            shader.GetUniform<int>("s_texture1").Value = 1;
-                            shader.GetUniform<Matrix4>("u_clipMatrix").Value = drawable.MaskingContext.DrawMatrix;
-                            shader.GetUniform<Vector4>("u_channelFlag").Value = new Vector4(1.0f, 0.0f, 0.0f, 0.0f);
-                        }
-                        else
-                        {
-                            GLWrapper.BindTexture(null, TextureUnit.Texture1);
-                        }
-
-                        drawable.Texture?.TextureGL.Bind();
-                        GLWrapper.SetBlend(drawable.Blending);
-
                         shader.GetUniform<int>("s_texture0").Value = 0;
-                        shader.GetUniform<Matrix4>("u_matrix").Value = Matrix4.Identity;
+                        shader.GetUniform<Vector4>("u_channelFlag").Value = new Vector4(1.0f, 0.0f, 0.0f, 0.0f);
+                        shader.GetUniform<Matrix4>("u_clipMatrix").Value = context.MaskMatrix;
+                        shader.GetUniform<Vector4>("u_baseColor").Value = new Vector4(-1.0f, -1.0f, 1.0f, 1.0f);
 
-                        Colour4 colour = drawable.Colour;
-                        shader.GetUniform<Vector4>("u_baseColor").Value = new Vector4(colour.R, colour.G, colour.B, colour.A);
-
-                        fixed (Vector2* pinnedPositions = drawable.Positions)
-                        fixed (Vector2* pinnedTexturePositions = drawable.TexturePositions)
-                        fixed (short* pinnedIndices = drawable.Indices)
+                        foreach (var mask in context.Masks)
                         {
-                            GL.EnableVertexAttribArray(0);
-                            GL.VertexAttribPointer(0, 2, VertexAttribPointerType.Float, false, sizeof(Vector2), (IntPtr)pinnedPositions);
+                            if (mask.IsDoubleSided)
+                            {
+                                GL.Enable(EnableCap.CullFace);
+                            }
+                            else
+                            {
+                                GL.Disable(EnableCap.CullFace);
+                            }
 
-                            GL.EnableVertexAttribArray(1);
-                            GL.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, sizeof(Vector2), (IntPtr)pinnedTexturePositions);
-
-                            GL.DrawElements(PrimitiveType.Triangles, drawable.Indices.Length, DrawElementsType.UnsignedShort, (IntPtr)pinnedIndices);
+                            mask.Draw();
                         }
 
-                        GLWrapper.SetBlend(BlendingParameters.None);
                         shader.Unbind();
                     }
                 }
+
+                // Draw our drawables
+                foreach (var drawable in drawables)
+                {
+                    bool hasMask = drawable.MaskingContext != null;
+
+                    var shader = shaders.GetShaderFor(hasMask, drawable.IsInvertedMask, false);
+
+                    shader.Bind();
+
+                    if (hasMask)
+                    {
+                        drawable.MaskingContext.FrameBuffer.Texture?.Bind(TextureUnit.Texture1);
+                        shader.GetUniform<int>("s_texture1").Value = 1;
+                        shader.GetUniform<Matrix4>("u_clipMatrix").Value = drawable.MaskingContext.DrawMatrix;
+                        shader.GetUniform<Vector4>("u_channelFlag").Value = new Vector4(1.0f, 0.0f, 0.0f, 0.0f);
+                    }
+                    else
+                    {
+                        GLWrapper.BindTexture(null, TextureUnit.Texture1);
+                    }
+
+                    drawable.Texture?.TextureGL.Bind();
+                    GLWrapper.SetBlend(drawable.Blending);
+
+                    shader.GetUniform<int>("s_texture0").Value = 0;
+                    shader.GetUniform<Matrix4>("u_matrix").Value = new Matrix4(DrawInfo.Matrix);
+
+                    var colour = ((Colour4)DrawColourInfo.Colour).Vector;
+                    colour.W *= drawable.Alpha;
+
+                    shader.GetUniform<Vector4>("u_baseColor").Value = new Vector4(colour.X, colour.Y, colour.Z, colour.W);
+
+                    if (drawable.IsDoubleSided)
+                    {
+                        GL.Enable(EnableCap.CullFace);
+                    }
+                    else
+                    {
+                        GL.Disable(EnableCap.CullFace);
+                    }
+
+                    drawable.Draw();
+
+                    GLWrapper.SetBlend(BlendingParameters.None);
+                    shader.Unbind();
+                }
+
+                // Ensure that culling is disabled after drawing
+                GL.Disable(EnableCap.CullFace);
             }
 
             private IDisposable bindFrameBuffer(FrameBuffer frameBuffer)
@@ -150,36 +147,6 @@ namespace Vignette.Game.Live2D.Graphics
                 GLWrapper.SetBlend(BlendingParameters.None);
                 GLWrapper.PopViewport();
                 frameBuffer.Unbind();
-            }
-
-            private bool lastCullFace;
-            private int lastFrontFace;
-            private int lastArrayBufferBind;
-            private int lastElementArrayBufferBind;
-
-            private IDisposable prepareRenderer()
-            {
-                GL.GetInteger(GetPName.ArrayBufferBinding, out lastArrayBufferBind);
-                GL.GetInteger(GetPName.ElementArrayBufferBinding, out lastElementArrayBufferBind);
-                GL.GetInteger(GetPName.FrontFace, out lastFrontFace);
-                lastCullFace = GL.IsEnabled(EnableCap.CullFace);
-
-                GLWrapper.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
-                GLWrapper.BindBuffer(BufferTarget.ArrayBuffer, 0);
-
-                return new ValueInvokeOnDisposal<CubismRendererDrawNode>(this, d => d.restoreRenderer());
-            }
-
-            private void restoreRenderer()
-            {
-                GLWrapper.BindBuffer(BufferTarget.ArrayBuffer, lastArrayBufferBind);
-                GLWrapper.BindBuffer(BufferTarget.ElementArrayBuffer, lastElementArrayBufferBind);
-                GL.FrontFace((FrontFaceDirection)lastFrontFace);
-
-                if (lastCullFace)
-                    GL.Enable(EnableCap.CullFace);
-                else
-                    GL.Disable(EnableCap.CullFace);
             }
         }
     }

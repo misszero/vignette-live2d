@@ -16,7 +16,7 @@ namespace Vignette.Game.Live2D.Motion
 
         public CubismMotionTarget TargetType { get; set; }
 
-        public ICubismId Effect { get; set; }
+        public CubismId Effect { get; set; }
 
         public CubismPart Part { get; set; }
 

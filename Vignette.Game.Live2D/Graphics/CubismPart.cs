@@ -7,12 +7,8 @@ using System;
 
 namespace Vignette.Game.Live2D.Graphics
 {
-    public class CubismPart : ICubismId
+    public class CubismPart : CubismId
     {
-        public string Name { get; private set; }
-
-        public int ID { get; private set; }
-
         public float TargetOpacity { get; set; }
 
         private float currentOpacity;

@@ -29,7 +29,7 @@ namespace Vignette.Game.Live2D.IO.Serialization
 
             public Dictionary<string, List<Motion>> Motions { get; set; }
 
-            public Dictionary<string, List<Expression>> Expressions { get; set; }
+            public List<Expression> Expressions { get; set; }
 
             public List<string> Textures { get; set; }
 

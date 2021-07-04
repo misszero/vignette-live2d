@@ -10,7 +10,6 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics;
@@ -21,10 +20,9 @@ using osu.Framework.Platform;
 using osuTK;
 using Vignette.Game.Live2D.Extensions;
 using Vignette.Game.Live2D.Graphics.Controllers;
-using Vignette.Game.Live2D.IO;
 using Vignette.Game.Live2D.IO.Serialization;
-using Vignette.Game.Live2D.IO.Serialization.Converters;
 using Vignette.Game.Live2D.Model;
+using Vignette.Game.Live2D.Utils;
 
 namespace Vignette.Game.Live2D.Graphics
 {
@@ -32,8 +30,7 @@ namespace Vignette.Game.Live2D.Graphics
     /// A drawable that renders a Live2D model.
     /// </summary>
     [Cached]
-    [Cached(typeof(ICubismResourceProvider))]
-    public unsafe class CubismModel : CompositeDrawable, ICubismResourceProvider
+    public unsafe class CubismModel : CompositeDrawable
     {
         private readonly CubismMoc moc;
         private readonly IntPtr buffer;
@@ -67,27 +64,34 @@ namespace Vignette.Game.Live2D.Graphics
         /// </summary>
         public IReadOnlyList<CubismPart> Parts => parts;
 
+        public CubismModelSetting Settings { get; private set; }
+
+        public IResourceStore<byte[]> Resources { get; private set; }
+
+        private LargeTextureStore largeTextureStore;
+
         internal IReadOnlyList<MaskingContext> MaskingContexts => maskingContexts;
 
         /// <summary>
         /// Create a new <see cref="CubismModel"/> with the provided resource store.
         /// </summary>
-        /// <param name="resources">The resource store that contains files necessary to build a model.</param>
+        /// <param name="resources">The resource store that contains files necessary to create a model.</param>
         public CubismModel(IResourceStore<byte[]> resources)
         {
-            this.resources = resources;
+            Resources = resources;
 
-            var modelSettingFile = this.resources.GetAvailableResources().FirstOrDefault(s => s.EndsWith("model3.json"));
+            var modelSettingFile = Resources.GetAvailableResources().FirstOrDefault(s => s.EndsWith("model3.json"));
 
             if (string.IsNullOrEmpty(modelSettingFile))
-                throw new FileNotFoundException($"{nameof(resources)} must contain a model setting file.");
+                throw new FileNotFoundException($"{nameof(resources)} must contain a model setting file or is not found.");
 
-            modelSetting = readJsonSetting<CubismModelSetting>(modelSettingFile);
+            using var stream = Resources.GetStream(modelSettingFile);
+            Settings = CubismUtils.ReadJsonSetting<CubismModelSetting>(stream);
 
-            using var mocStream = resources.GetStream(modelSetting.FileReferences.Moc);
+            using var mocStream = resources.GetStream(Settings.FileReferences.Moc);
 
             if (mocStream == null)
-                throw new FileNotFoundException($"{nameof(resources)} does not contain a moc file.");
+                throw new FileNotFoundException($"{nameof(resources)} does not contain a moc file or is not found.");
 
             moc = new CubismMoc(mocStream);
 
@@ -100,22 +104,6 @@ namespace Vignette.Game.Live2D.Graphics
             initializeParameters();
             initializeParts();
             initializeDrawables();
-
-            Add(new CubismBreathController());
-
-            if (!string.IsNullOrEmpty(modelSetting.FileReferences.Physics))
-                Add(new CubismPhysicsController(readJsonSetting<CubismPhysicsSetting>(modelSetting.FileReferences.Physics)));
-
-            var eyeblinkGroup = modelSetting.Groups.FirstOrDefault(g => g.Name == "EyeBlink");
-            if (eyeblinkGroup != null)
-                Add(new CubismEyeblinkController(parameters.Where(p => eyeblinkGroup.Ids.Contains(p.Name))));
-        }
-
-        private T readJsonSetting<T>(string path) where T : ICubismJsonSetting
-        {
-            using var stream = resources.GetStream(path);
-            using var reader = new StreamReader(stream);
-            return JsonConvert.DeserializeObject<T>(reader.ReadToEnd(), new JsonVector2Converter());
         }
 
         #region Drawable Management
@@ -180,8 +168,6 @@ namespace Vignette.Game.Live2D.Graphics
                     };
                 }
 
-                drawable.ColourChanged += () => renderer.Invalidate(Invalidation.DrawNode);
-
                 drawables.Add(drawable);
             }
 
@@ -212,7 +198,7 @@ namespace Vignette.Game.Live2D.Graphics
             // is called. This is why we isolate this into its own method.
             var textureIds = CubismCore.csmGetDrawableTextureIndices(handle);
             foreach (var drawable in drawables)
-                drawable.Texture = largeTextureStore?.Get(modelSetting?.FileReferences.Textures[textureIds[drawable.ID]] ?? string.Empty);
+                drawable.Texture = largeTextureStore?.Get(Settings?.FileReferences.Textures[textureIds[drawable.ID]] ?? string.Empty);
         }
 
         private void updateDrawables(CancellationTokenSource token)
@@ -222,6 +208,8 @@ namespace Vignette.Game.Live2D.Graphics
             var renderOrders = CubismCore.csmGetDrawableRenderOrders(handle);
             var dynamicFlags = CubismCore.csmGetDrawableDynamicFlags(handle);
 
+            bool needsRedraw = false;
+
             foreach (var drawable in drawables)
             {
                 if (token.IsCancellationRequested)
@@ -230,28 +218,27 @@ namespace Vignette.Game.Live2D.Graphics
                 int i = drawable.ID;
                 var flags = dynamicFlags[i];
 
-                bool hasUpdate = false;
-
-                if (flags.HasFlagFast(CubismDynamicFlags.OpacityChanged))
+                if (flags.HasFlagFast(CubismDynamicFlags.OpacityChanged) && drawable.Alpha != opacities[i])
                 {
                     drawable.Alpha = opacities[i];
-                    hasUpdate = true;
+                    needsRedraw = true;
                 }
 
-                if (flags.HasFlagFast(CubismDynamicFlags.RenderOrderChanged))
+                if (flags.HasFlagFast(CubismDynamicFlags.RenderOrderChanged) && drawable.RenderOrder != renderOrders[i])
                 {
                     drawable.RenderOrder = renderOrders[i];
-                    hasUpdate = true;
+                    needsRedraw = true;
                 }
 
                 if (flags.HasFlagFast(CubismDynamicFlags.VertexPositionsChanged))
                 {
-                    drawable.Positions = pointerToArray<Vector2>(vertices[i], vertexCounts[i], token);
-                    hasUpdate = true;
+                    var positions = pointerToArray<Vector2>(vertices[i], vertexCounts[i], token);
+                    if (drawable.Positions == null || !positions.SequenceEqual(drawable.Positions))
+                    {
+                        drawable.Positions = positions;
+                        needsRedraw = true;
+                    }
                 }
-
-                if (hasUpdate)
-                    Schedule(() => renderer.Invalidate(Invalidation.DrawNode));
             }
 
             foreach (var context in maskingContexts)
@@ -284,6 +271,9 @@ namespace Vignette.Game.Live2D.Graphics
 
                 context.DrawMatrix = matrixForDraw;
             }
+
+            if (needsRedraw)
+                Schedule(() => renderer.Redraw());
         }
 
         #endregion
@@ -339,13 +329,13 @@ namespace Vignette.Game.Live2D.Graphics
                 parts.Add(new CubismPart(i, Marshal.PtrToStringAnsi((IntPtr)names[i])));
         }
 
-        private void copyPartValuesFromModel()
+        private void copyPartValuesToModel()
         {
             var values = parts.Select(p => p.CurrentOpacity).ToArray();
             Marshal.Copy(values, 0, (IntPtr)partOpacityValues, values.Length);
         }
 
-        private void copyPartValuesToModel()
+        private void copyPartValuesFromModel()
         {
             for (int i = 0; i < parts.Count; i++)
                 parts[i].CurrentOpacity = partOpacityValues[i];
@@ -361,6 +351,9 @@ namespace Vignette.Game.Live2D.Graphics
 
             initializeDrawableTextures();
 
+            copyParameterValuesFromModel();
+            copyPartValuesFromModel();
+
             updateTaskCancellationToken = new CancellationTokenSource();
             updateTask = Task.Factory.StartNew(() => updateModelTask(updateTaskCancellationToken), updateTaskCancellationToken.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
         }
@@ -372,6 +365,10 @@ namespace Vignette.Game.Live2D.Graphics
                 if (token.IsCancellationRequested)
                     break;
 
+                updateDrawables(token);
+
+                CubismCore.csmResetDrawableDynamicFlags(handle);
+
                 copyParameterValuesToModel();
                 copyPartValuesToModel();
 
@@ -379,10 +376,6 @@ namespace Vignette.Game.Live2D.Graphics
 
                 copyParameterValuesFromModel();
                 copyPartValuesFromModel();
-
-                updateDrawables(token);
-
-                CubismCore.csmResetDrawableDynamicFlags(handle);
             }
         }
 
@@ -390,29 +383,10 @@ namespace Vignette.Game.Live2D.Graphics
         /// Create a texture store for this model. By default, it creates its own texture store but it must be overridden to share a single store.
         /// </summary>
         /// <returns>A texture store</returns>
-        protected virtual LargeTextureStore CreateTextureStore() => resources != null ? new LargeTextureStore(host.CreateTextureLoaderStore(resources)) : null;
-
-        //public override bool ReceivePositionalInputAt(Vector2 screenSpacePos)
-        //{
-        //    var local = ToLocalSpace(screenSpacePos);
-        //    var rect = RectangleF.Empty;
-
-        //    var hitAreas = modelSetting.HitAreas.Select(h => h.Id);
-
-        //    if (!hitAreas.Any())
-        //        return base.ReceivePositionalInputAt(screenSpacePos);
-
-        //    foreach (var drawable in Drawables.Where(d => hitAreas.Contains(d.Name)))
-        //        rect = RectangleF.Union(rect, drawable.VertexBounds);
-
-        //    return rect.Contains(local);
-        //}
+        protected virtual LargeTextureStore CreateTextureStore() => Resources != null ? new LargeTextureStore(host.CreateTextureLoaderStore(Resources)) : null;
 
         protected override void Dispose(bool isDisposing)
         {
-            if (isDisposing)
-                Marshal.FreeHGlobal(buffer);
-
             updateTaskCancellationToken.Cancel();
             updateTask.Wait();
 
@@ -422,10 +396,16 @@ namespace Vignette.Game.Live2D.Graphics
             updateTaskCancellationToken.Dispose();
             updateTaskCancellationToken = null;
 
-            moc.Dispose();
+            foreach (var drawable in drawables)
+                drawable.Dispose();
 
             foreach (var context in maskingContexts)
                 context.Dispose();
+
+            if (isDisposing)
+                Marshal.FreeHGlobal(buffer);
+
+            moc.Dispose();
 
             base.Dispose(isDisposing);
         }
@@ -505,20 +485,6 @@ namespace Vignette.Game.Live2D.Graphics
                 AddRange(value);
             }
         }
-
-        #endregion
-
-        #region ICubismResourceProvider
-
-        private LargeTextureStore largeTextureStore;
-        private readonly CubismModelSetting modelSetting;
-        private readonly IResourceStore<byte[]> resources;
-
-        CubismModelSetting ICubismResourceProvider.Settings => modelSetting;
-
-        LargeTextureStore ICubismResourceProvider.Textures => largeTextureStore;
-
-        IResourceStore<byte[]> ICubismResourceProvider.Resources => resources;
 
         #endregion
     }
