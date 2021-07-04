@@ -12,7 +12,7 @@
                 "/property:GenerateFullPaths=true",
                 "-m",
                 "-verbosity:m",
-                "Vignette.Game.Live2D.Tests"
+                "Vignette.Live2D.Tests"
             ],
             "group": "build",
             "presentation": {
@@ -30,7 +30,7 @@
                 "-p:GenerateFullPaths=true",
                 "-m",
                 "-verbosity:m",
-                "Vignette.Game.Live2D.Tests"
+                "Vignette.Live2D.Tests"
             ],
             "group": "build",
             "presentation": {
