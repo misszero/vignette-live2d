@@ -56,7 +56,7 @@ namespace Vignette.Live2D.Model
                 throw new ArgumentException($"{nameof(moc)} has version '{Version}' while core can only support up to '{CubismCore.LatestMocVersion}'.");
         }
 
-#region Disposal
+        #region Disposal
 
         public bool IsDisposed { get; private set; }
 
@@ -80,7 +80,7 @@ namespace Vignette.Live2D.Model
             Dispose(true);
             GC.SuppressFinalize(this);
         }
-    }
 
-#endregion
+        #endregion
+    }
 }

@@ -4,12 +4,12 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
-    <InternalsVisibleTo Include="Vignette.Live2D.Tests"/>
+    <InternalsVisibleTo Include="Vignette.Live2D.Tests" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\Shaders\**\*" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\osu-framework\osu.Framework\osu.Framework.csproj" />
+    <PackageReference Include="ppy.osu.Framework" Version="2021.728.0" PrivateAssets="All" />
   </ItemGroup>
 </Project>
