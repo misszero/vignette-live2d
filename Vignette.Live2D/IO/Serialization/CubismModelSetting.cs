@@ -43,6 +43,8 @@ namespace Vignette.Live2D.IO.Serialization
             {
                 public string File { get; set; }
 
+                public string Sound { get; set; }
+
                 public double FadeInTime { get; set; } = double.NaN;
 
                 public double FadeOutTime { get; set; } = double.NaN;

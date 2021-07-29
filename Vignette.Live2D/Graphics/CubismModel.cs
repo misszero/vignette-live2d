@@ -41,6 +41,8 @@ namespace Vignette.Live2D.Graphics
         private Task updateTask;
         private CancellationTokenSource updateTaskCancellationToken;
 
+        private LargeTextureStore largeTextureStore;
+
         [Resolved]
         private GameHost host { get; set; }
 
@@ -64,11 +66,20 @@ namespace Vignette.Live2D.Graphics
         /// </summary>
         public IReadOnlyList<CubismPart> Parts => parts;
 
+        /// <summary>
+        /// The deserialized "model3.json" file.
+        /// </summary>
         public CubismModelSetting Settings { get; private set; }
 
-        public IResourceStore<byte[]> Resources { get; private set; }
+        /// <summary>
+        /// The deserialized "cdi3.json" file.
+        /// </summary>
+        public CubismAuxDisplaySetting DisplayAuxilliarySettings { get; private set; }
 
-        private LargeTextureStore largeTextureStore;
+        /// <summary>
+        /// The resource store this model uses.
+        /// </summary>
+        internal IResourceStore<byte[]> Resources { get; private set; }
 
         internal IReadOnlyList<MaskingContext> MaskingContexts => maskingContexts;
 
@@ -85,8 +96,8 @@ namespace Vignette.Live2D.Graphics
             if (string.IsNullOrEmpty(modelSettingFile))
                 throw new FileNotFoundException($"{nameof(resources)} must contain a model setting file or is not found.");
 
-            using var stream = Resources.GetStream(modelSettingFile);
-            Settings = CubismUtils.ReadJsonSetting<CubismModelSetting>(stream);
+            using var settingStream = Resources.GetStream(modelSettingFile);
+            Settings = CubismUtils.ReadJsonSetting<CubismModelSetting>(settingStream);
 
             using var mocStream = resources.GetStream(Settings.FileReferences.Moc);
 
@@ -98,6 +109,12 @@ namespace Vignette.Live2D.Graphics
             int size = CubismCore.csmGetSizeofModel(moc.Handle);
             buffer = Marshal.AllocHGlobal(size + CubismCore.ALIGN_OF_MODEL - 1);
             handle = CubismCore.csmInitializeModelInPlace(moc.Handle, buffer.Align(CubismCore.ALIGN_OF_MODEL), size);
+
+            if (!string.IsNullOrEmpty(Settings.FileReferences.DisplayInfo))
+            {
+                using var auxStream = Resources.GetStream(Settings.FileReferences.DisplayInfo);
+                DisplayAuxilliarySettings = CubismUtils.ReadJsonSetting<CubismAuxDisplaySetting>(auxStream);
+            }
 
             AddInternal(renderer = new CubismRenderer(this));
 
@@ -358,6 +375,24 @@ namespace Vignette.Live2D.Graphics
             updateTask = Task.Factory.StartNew(() => updateModelTask(updateTaskCancellationToken), updateTaskCancellationToken.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
         }
 
+        public new Colour4 Colour
+        {
+            get => base.Colour;
+            set => base.Colour = renderer.Colour = value;
+        }
+
+        public new float Alpha
+        {
+            get => base.Alpha;
+            set => base.Alpha = renderer.Alpha = value;
+        }
+
+        public new BlendingParameters Blending
+        {
+            get => base.Blending;
+            set => base.Blending = renderer.Blending = value;
+        }
+
         private void updateModelTask(CancellationTokenSource token)
         {
             while (true)
@@ -484,6 +519,16 @@ namespace Vignette.Live2D.Graphics
 
                 AddRange(value);
             }
+        }
+
+        /// <summary>
+        /// Gets or sets the only controller for this <see cref="CubismModel"/>.
+        /// Assigning to this property will dispose of all existing controllers.
+        /// </summary>
+        public CubismController Child
+        {
+            get => Children.FirstOrDefault();
+            set => Children = new[] { value };
         }
 
         #endregion

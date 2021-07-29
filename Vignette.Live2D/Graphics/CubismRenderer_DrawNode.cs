@@ -45,6 +45,7 @@ namespace Vignette.Live2D.Graphics
                 base.Draw(vertexAction);
 
                 // Draw our masks to the frame buffers
+                // TODO: Use one frame buffer for each model
                 foreach (var context in contexts)
                 {
                     using (bindFrameBuffer(context.FrameBuffer))
@@ -101,11 +102,7 @@ namespace Vignette.Live2D.Graphics
 
                     shader.GetUniform<int>("s_texture0").Value = 0;
                     shader.GetUniform<Matrix4>("u_matrix").Value = new Matrix4(DrawInfo.Matrix);
-
-                    var colour = ((Colour4)DrawColourInfo.Colour).Vector;
-                    colour.W *= drawable.Alpha;
-
-                    shader.GetUniform<Vector4>("u_baseColor").Value = new Vector4(colour.X, colour.Y, colour.Z, colour.W);
+                    shader.GetUniform<Vector4>("u_baseColor").Value = new Vector4(1, 1, 1, 1);
 
                     if (drawable.IsDoubleSided)
                     {

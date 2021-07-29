@@ -18,7 +18,7 @@ namespace Vignette.Live2D.Graphics.Controllers
 
         public CubismBreathController(params CubismBreathParameter[] parameters)
         {
-            settings = (parameters != null || parameters.Length > 0) ? parameters : default_parameters;
+            settings = parameters.Any() ? parameters : default_parameters;
         }
 
         protected override void Update()
@@ -37,7 +37,7 @@ namespace Vignette.Live2D.Graphics.Controllers
             }
         }
 
-        private static CubismBreathParameter[] default_parameters = new[] { new CubismBreathParameter("ParamBreath", 0.5f, 0.5f, 3.2345f, 0.5f) };
+        private static readonly CubismBreathParameter[] default_parameters = new[] { new CubismBreathParameter("ParamBreath", 0.5f, 0.5f, 3.2345f, 0.5f) };
     }
 
     public struct CubismBreathParameter

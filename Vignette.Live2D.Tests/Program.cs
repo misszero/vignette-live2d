@@ -11,7 +11,6 @@ using osu.Framework.IO.Stores;
 using osu.Framework.Logging;
 using osu.Framework.Testing;
 using Vignette.Live2D.Resources;
-using CubismLogFunction = Vignette.Live2D.CubismCore.CubismLogFunction;
 
 namespace Vignette.Live2D.Tests
 {
@@ -20,20 +19,16 @@ namespace Vignette.Live2D.Tests
         [STAThread]
         public static void Main(string[] args)
         {
-            using (var host = Host.GetSuitableHost("vignette"))
-                host.Run(new VisualTestGame());
+            using var host = Host.GetSuitableHost("vignette");
+            host.Run(new VisualTestGame());
         }
 
-        private class VisualTestGame : osu.Framework.Game
+        private class VisualTestGame : Game
         {
             public VisualTestGame()
             {
-                CubismCore.SetLogFunction(new CubismLogFunction(logCubismCoreMessage));
+                CubismCore.SetLogger(new CubismCore.CubismLogFunction(message => Logger.GetLogger("performance-cubism").Debug(message)));
             }
-
-            private static readonly Logger logger = Logger.GetLogger("performance-cubism");
-
-            private static void logCubismCoreMessage(string message) => logger.Add(message);
 
             protected override void LoadComplete()
             {

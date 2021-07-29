@@ -1,8 +1,11 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Vignette.Live2D.Tests"/>
+  </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\Shaders\**\*" />
   </ItemGroup>

@@ -34,7 +34,7 @@ namespace Vignette.Live2D.Graphics.Controllers
         [BackgroundDependencyLoader]
         private void load()
         {
-            if (parameters != null)
+            if (parameters?.Any() ?? false)
                 return;
 
             var lipSyncGroup = Model.Settings.Groups.FirstOrDefault(g => g.Name == "LipSync");

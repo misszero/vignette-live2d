@@ -12,6 +12,6 @@ namespace Vignette.Live2D.Tests.Resources
     public static class TestResources
     {
         public static IResourceStore<byte[]> GetResourceStore() => new NamespacedResourceStore<byte[]>(new DllResourceStore(typeof(TestResources).Assembly), "Resources");
-        public static IResourceStore<byte[]> GetModelResourceStore() => new NamespacedResourceStore<byte[]>(GetResourceStore(), "Model");
+        public static IResourceStore<byte[]> GetModelResourceStore() => new NamespacedResourceStore<byte[]>(GetResourceStore(), "Models");
     }
 }

@@ -52,7 +52,7 @@ namespace Vignette.Live2D.Graphics.Controllers
         [BackgroundDependencyLoader]
         private void load()
         {
-            if (parameters == null)
+            if (!parameters.Any())
             {
                 var eyeblinkGroup = Model.Settings.Groups.FirstOrDefault(g => g.Name == "EyeBlink");
                 parameters = Model.Parameters.Where(p => eyeblinkGroup.Ids.Contains(p.Name));

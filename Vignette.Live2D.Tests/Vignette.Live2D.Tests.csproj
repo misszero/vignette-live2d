@@ -18,7 +18,7 @@
     <EmbeddedResource Include="Resources\**\*" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Visual\TestSceneCubismModel.cs" />
+    <EmbeddedResource Include="Visual\CubismModelTestScene.cs" />
   </ItemGroup>
 
 </Project>

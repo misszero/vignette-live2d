@@ -19,33 +19,52 @@ namespace Vignette.Live2D
         /// <summary>
         /// Invoked when the Live2D Cubism Core invokes a log message.
         /// </summary>
-        /// <param name="message"></param>
+        /// <param name="message">The message to output to the logger.</param>
         public delegate void CubismLogFunction(string message);
 
         /// <summary>
         /// Returns the version of the Live2D Cubism Core.
         /// </summary>
-        public static CubismVersion Version => new CubismVersion(csmGetVersion());
+        public static CubismVersion Version => version;
 
         /// <summary>
         /// Returns the latest moc version the Live2D Cubism Core can handle.
         /// </summary>
-        public static CubismMocVersion LatestMocVersion => (CubismMocVersion)csmGetLatestMocVersion();
+        public static CubismMocVersion LatestMocVersion => latest_moc_version;
 
         /// <summary>
         /// Sets the logging function for the Live2D Cubism Core.
         /// </summary>
-        public static void SetLogFunction(CubismLogFunction action) => csmSetLogFunction(action);
+        /// <param name="logger">The logging function to pass to the core.</param>
+        public static void SetLogger(CubismLogFunction logger)
+        {
+            // It is possible that they may pass an anonymous function,
+            // we have to keep it alive so garbage collection won't remove our function.
+            cubism_log_func = logger;
+            csmSetLogFunction(cubism_log_func);
+        }
 
         /// <summary>
-        /// Gets the logging function of the Live2D Cubism Core.
+        /// Gets the logging function used by the Live2D Cubism Core.
         /// </summary>
-        /// <returns>The logging function.</returns>
-        public static CubismLogFunction GetLogFunction() => csmGetLogFunction();
+        /// <returns>The logging function used by the core.</returns>
+        public static CubismLogFunction GetLogger() => csmGetLogFunction();
+
+        private static readonly CubismVersion version = new CubismVersion(csmGetVersion());
+
+        private static readonly CubismMocVersion latest_moc_version = (CubismMocVersion)csmGetLatestMocVersion();
+
+        private static CubismLogFunction cubism_log_func;
 
         private const string library = @"Live2DCubismCore";
 
 #pragma warning disable IDE1006
+
+        [DllImport(library, ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
+        internal static extern CubismLogFunction csmGetLogFunction();
+
+        [DllImport(library, ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
+        internal static extern void csmSetLogFunction(CubismLogFunction function);
 
         [DllImport(library, ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
         private static extern uint csmGetVersion();
@@ -55,12 +74,6 @@ namespace Vignette.Live2D
 
         [DllImport(library, ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
         internal static extern CubismMocVersion csmGetMocVersion(IntPtr address);
-
-        [DllImport(library, ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
-        internal static extern CubismLogFunction csmGetLogFunction();
-
-        [DllImport(library, ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
-        internal static extern void csmSetLogFunction(CubismLogFunction function);
 
         [DllImport(library, ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
         internal static extern IntPtr csmReviveMocInPlace(IntPtr address, int size);

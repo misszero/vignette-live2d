@@ -72,7 +72,21 @@ namespace Vignette.Live2D.Graphics.Controllers
             if (!Entries.TryGetValue(name, out List<CubismMotion> motions))
                 return false;
 
-            var next = motions[RNG.Next(0, motions.Count)];
+            return Enqueue(name, RNG.Next(0, motions.Count));
+        }
+
+        /// <summary>
+        /// Enqueues a motion in the group to be played at a specified index.
+        /// </summary>
+        /// <param name="name">The motion group name as defined in the model settings to play.</param>
+        /// <param name="index">The index of the motion in the group defined in the model settings.</param>
+        /// <returns>Whether we successfully queued a motion.</returns>
+        public bool Enqueue(string name, int index)
+        {
+            if (!Entries.TryGetValue(name, out List<CubismMotion> motions))
+                return false;
+
+            var next = motions[index];
             Queue.Enqueue(next);
 
             return true;
@@ -81,7 +95,7 @@ namespace Vignette.Live2D.Graphics.Controllers
         /// <summary>
         /// Plays the next motion in queue.
         /// </summary>
-        public void Next() => current = default;
+        public void Next() => current = null;
 
         /// <summary>
         /// Clears the queue and stops the current motion from playing.

@@ -35,9 +35,43 @@ namespace Vignette.Live2D.Graphics
             this.shaders = new CubismShaders(shaders);
         }
 
-        private readonly BufferedDrawNodeSharedData sharedData = new BufferedDrawNodeSharedData(new[] { RenderbufferInternalFormat.DepthComponent16 });
-        public Color4 BackgroundColour => new Colour4(0, 0, 0, 0);
-        public DrawColourInfo? FrameBufferDrawColour => new DrawColourInfo(Colour4.White, base.DrawColourInfo.Blending);
+        public new Colour4 Colour
+        {
+            get => base.Colour;
+            set
+            {
+                base.Colour = value;
+                calculateDrawColourInfo();
+            }
+        }
+
+        public new float Alpha
+        {
+            get => base.Alpha;
+            set
+            {
+                base.Alpha = value;
+                calculateDrawColourInfo();
+            }
+        }
+
+        public new BlendingParameters Blending
+        {
+            get => base.Blending;
+            set
+            {
+                base.Blending = value;
+                calculateDrawColourInfo();
+            }
+        }
+
+
+        private void calculateDrawColourInfo()
+            => FrameBufferDrawColour = new DrawColourInfo(Colour.MultiplyAlpha(Alpha), Blending);
+
+        private readonly BufferedDrawNodeSharedData sharedData = new BufferedDrawNodeSharedData();
+        public Color4 BackgroundColour => Colour4.Transparent;
+        public DrawColourInfo? FrameBufferDrawColour { get; private set; }
         public Vector2 FrameBufferScale { get; } = Vector2.One;
         public IShader TextureShader { get; private set; }
         public IShader RoundedTextureShader { get; private set; }
