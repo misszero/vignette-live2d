@@ -102,7 +102,7 @@ namespace Vignette.Live2D.Graphics
 
                     shader.GetUniform<int>("s_texture0").Value = 0;
                     shader.GetUniform<Matrix4>("u_matrix").Value = new Matrix4(DrawInfo.Matrix);
-                    shader.GetUniform<Vector4>("u_baseColor").Value = new Vector4(1, 1, 1, 1);
+                    shader.GetUniform<Vector4>("u_baseColor").Value = new Vector4(1, 1, 1, drawable.Alpha);
 
                     if (drawable.IsDoubleSided)
                     {
